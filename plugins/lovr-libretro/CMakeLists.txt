@@ -8,6 +8,12 @@ add_library(lua-libretro
 
 set_target_properties(lua-libretro PROPERTIES PREFIX "")
 
+# if we are on Android, use liblog for logging into logcat instead of stdout
+if(ANDROID)
+    find_library(log-lib log)
+    target_link_libraries(lua-libretro ${log-lib})
+endif()
+
 if(LOVR)
 	set(LOVR_PLUGIN_TARGETS lua-libretro lua-libretro)
 endif()

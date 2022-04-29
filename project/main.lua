@@ -1,3 +1,19 @@
+lovr.retro = require 'lua-libretro'
+
+-- generate a string representation of a lua table
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 function lovr.load()
   shader = lovr.graphics.newShader([[
     vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
@@ -20,6 +36,11 @@ function lovr.load()
   ]], { flags = { highp = true } })
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
+
+  -- TODO: only for testing.
+  print(dump(lovr.retro))
+  lovr.retro.init()
+  lovr.retro.set_video_buffer()
 end
 
 function lovr.draw()
