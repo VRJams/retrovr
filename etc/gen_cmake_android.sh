@@ -57,4 +57,5 @@ cmake \
     -D ANDROID_KEYSTORE=$HOME/.keystore/android_debug.keystore \
     -D ANDROID_KEYSTORE_PASS=file:$HOME/.keystore/android_debug.keystore.password \
     -D ANDROID_MANIFEST=${REPO_ROOT}/etc/AndroidManifest.xml \
+    -D ANDROID_ASSETS=${REPO_ROOT}/project \
     $1
