@@ -14,6 +14,12 @@ then
     exit 1
 fi
 
+if [[ ! -d "$1/.git" ]];
+then
+    echo "Error, src_dir should be the root of the repository"
+    exit 1
+fi
+
 if [[ -z "${ANDROID_HOME}" ]];
 then
     echo "Error, environment variable missing: ANDROID_HOME"
@@ -38,6 +44,9 @@ then
     exit 1
 fi
 
+REPO_ROOT=$(realpath $1)
+
+# TODO(sgosselin): add the project scripts and assets with ANDROID_ASSETS.
 cmake \
     -D LOVR_USE_VRAPI=ON \
     -D CMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
@@ -47,4 +56,5 @@ cmake \
     -D ANDROID_BUILD_TOOLS_VERSION=30.0.1 \
     -D ANDROID_KEYSTORE=$HOME/.keystore/android_debug.keystore \
     -D ANDROID_KEYSTORE_PASS=file:$HOME/.keystore/android_debug.keystore.password \
+    -D ANDROID_MANIFEST=${REPO_ROOT}/etc/AndroidManifest.xml \
     $1
