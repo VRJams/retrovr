@@ -4,6 +4,7 @@ project(lua-libretro)
 add_library(lua-libretro
     MODULE
     lua-libretro.c
+    retro_intf.c
 )
 
 set_target_properties(lua-libretro PROPERTIES PREFIX "")

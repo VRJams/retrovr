@@ -3,19 +3,10 @@
 #include <lauxlib.h>
 
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 
-#ifdef ANDROID
-#include <android/log.h>
-#define LOG(...) do {                                                       \
-        __android_log_print(ANDROID_LOG_VERBOSE, "RetroVR", __VA_ARGS__);   \
-    } while (0)
-#else
-#define LOG(...) do {                                                       \
-        printf(__VA_ARGS__);                                                \
-    } while (0)
-#endif
+#include "log.h"
+#include "retro_intf.h"
 
 /// Destroy the current libretro core allocated objects.
 static int

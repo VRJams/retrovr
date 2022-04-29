@@ -37,10 +37,13 @@ function lovr.load()
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
 
-  -- TODO: only for testing.
   print(dump(lovr.retro))
   lovr.retro.init()
-  lovr.retro.set_video_buffer()
+
+  -- create a blob to hold the video buffer
+  video_buffer = lovr.data.newBlob(640*478*4, 'video_buffer')
+  -- register it with libretro
+  lovr.retro.set_video_buffer(video_buffer.getPointer())
 end
 
 function lovr.draw()
@@ -50,4 +53,5 @@ function lovr.draw()
 
   -- screen plane where libretro will be retroprojected
   lovr.graphics.plane('fill', 0, 1, -4, 3, 2, 0, 0, 0, 0)
+  -- TODO: apply the video buffer
 end
