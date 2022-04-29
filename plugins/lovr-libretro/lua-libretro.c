@@ -17,6 +17,7 @@
     } while (0)
 #endif
 
+/// Destroy the current libretro core allocated objects.
 static int
 lret_destroy(lua_State* L)
 {
@@ -26,6 +27,7 @@ lret_destroy(lua_State* L)
     return 0;
 }
 
+/// Initialize the libretro core.
 static int
 lret_init(lua_State* L)
 {
@@ -35,6 +37,17 @@ lret_init(lua_State* L)
     return 0;
 }
 
+/// Run the current libretro core once.
+static int
+lret_run_once(lua_State* L)
+{
+    // TODO(sgosselin): implement.
+    LOG("%s: called", __func__);
+
+    return 0;
+}
+
+/// Set the memory destination of the libretro core video buffer.
 static int
 lret_set_video_buffer(lua_State* L)
 {
@@ -46,6 +59,7 @@ lret_set_video_buffer(lua_State* L)
 
 static const luaL_Reg lret_api[] = {
     { "init", lret_init },
+    { "run_once", lret_run_once },
     { "set_video_buffer", lret_set_video_buffer },
     { NULL, NULL },
 };
