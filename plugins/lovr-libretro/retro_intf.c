@@ -2,6 +2,7 @@
 #include "retro_intf.h"
 
 #include <assert.h>
+#include <stdint.h>
 
 /*
  * The interface supports a single instance of a core running so we are fine
