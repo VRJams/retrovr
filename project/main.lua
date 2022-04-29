@@ -26,4 +26,7 @@ function lovr.draw()
   lovr.graphics.setShader(shader)
   lovr.graphics.plane('fill', 0, 0, 0, 25, 25, -math.pi / 2, 1, 0, 0)
   lovr.graphics.setShader()
+
+  -- screen plane where libretro will be retroprojected
+  lovr.graphics.plane('fill', 0, 1, -4, 3, 2, 0, 0, 0, 0)
 end
