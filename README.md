@@ -5,15 +5,15 @@
 
 The project is still at an early stage so expect to find idiosyncrasies along
 the way. In order to build this project, you must install the Android SDK/NDK
-and set-up the ANDROID_HOME environment variable.
+and set-up the ANDROID_HOME environment variable. Run the following commands
+after checking out the repository to build the APK.
 
-After checking out the repository, run the following command (only once):
+    $ mkdir build; cd build
+    $ ../etc/gen_cmake_android.sh ..
+    $ make
 
-    $ ./etc/init-repository.sh
-
-The command will recursively checkout all sub-repositories and initialize some
-symlinks. Eventually, this will not be necessary but it is the easiest thing to
-do at this stage.
+The resulting APK is located in external/lovr/lovr.apk. The APK name will be
+renamed in a future diff.
 
 
 ## Organization
