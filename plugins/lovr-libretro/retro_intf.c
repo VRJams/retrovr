@@ -9,6 +9,7 @@
 
 #include <libretro.h>
 
+
 // Represent the interface with a libretro core.
 typedef struct {
     void *handle;
@@ -41,6 +42,7 @@ typedef struct {
     void (*retro_set_audio_sample)(retro_audio_sample_t);
     void (*retro_set_audio_sample_batch)(retro_audio_sample_batch_t);
 } retro_intf_core_t;
+
 
 // The current libretro core.
 static retro_intf_core_t gRetroCore;
@@ -168,7 +170,8 @@ retro_intf_init(char const* corePath, char const* gamePath)
 
     assert(corePath);
     assert(gamePath);
-    assert(gRetroCore.initialized == false);
+    assert(!gRetroCore.handle);
+    assert(!gRetroCore.initialized);
 
     // Firstly, load the core from its .so.
     if (!_retro_intf_core_load_core_from_file(corePath)) {
@@ -215,8 +218,6 @@ retro_intf_deinit(void)
 void
 retro_intf_run(void)
 {
-    // TODO(sgosselin): to be implemented.
-
     // TODO(sgosselin): remove this, right now the function will generate a
     // dummy texture that can be used to prove the pipeline is working. The
     // function should instead rely on the core video frame generation.
@@ -239,6 +240,10 @@ retro_intf_run(void)
         }
 
         offset++;
+    }
+
+    if (gRetroCore.initialized) {
+        gRetroCore.retro_run();
     }
 }
 
