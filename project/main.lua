@@ -70,5 +70,5 @@ function lovr.draw()
   tex:replacePixels(videoImg)
 
   -- screen plane where libretro will be retroprojected
-  lovr.graphics.plane(mat, 0, 1, -4, 3, 2, math.pi, 0, 0, 1)
+  lovr.graphics.plane(mat, 0, 1, -4, 3, 2, math.pi, 1, 0, 0)
 end
