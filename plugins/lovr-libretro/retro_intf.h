@@ -15,6 +15,9 @@ typedef enum {
 /// Initialize libretro with a core and a game.
 retro_intf_ret_t retro_intf_init(char const* corePath, char const* gamePath);
 
+/// De-initialize libretro.
+void retro_intf_deinit(void);
+
 /// Run the libretro core once.
 void retro_intf_run(void);
 

@@ -9,6 +9,11 @@ add_library(lua-libretro
 
 set_target_properties(lua-libretro PROPERTIES PREFIX "")
 
+target_include_directories(lua-libretro
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 # if we are on Android, use liblog for logging into logcat instead of stdout
 if(ANDROID)
     find_library(log-lib log)
