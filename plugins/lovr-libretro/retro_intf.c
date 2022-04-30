@@ -240,7 +240,12 @@ _retro_intf_core_load_game_from_file(char const* gamePath)
     }
 
     success = true;
+
 out:
+    if (!success) {
+        (void)free((void*) game_info.data);
+    }
+
     (void)fclose(file);
 
     return true;
