@@ -48,10 +48,14 @@ function lovr.load()
   end
 
   -- libretro: init the core, game and set the audio/video buffers.
-  lovr.retro:init()
+  wdir = lovr.filesystem.getWorkingDirectory()
+  corePath = wdir .. "/pcsx_rearmed_libretro.dylib"
+  gamePath = wdir .. "/PointBlank.bin"
+  lovr.retro:init(corePath, gamePath)
   lovr.retro:set_video_buffer(videoImg:getBlob():getPointer())
   lovr.retro:run_once()
 
+  -- configure the texture and material used to render the plane
   tex = lovr.graphics.newTexture(videoImg)
   mat = lovr.graphics.newMaterial(tex)
 end

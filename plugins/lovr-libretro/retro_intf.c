@@ -217,21 +217,17 @@ _retro_intf_core_load_game_from_file(char const* gamePath)
     struct retro_system_info systemInfo = {0};
     gRetroCore.retro_get_system_info(&systemInfo);
 
-    // TODO(sgosselin): support cores that do not handle in-memory game.
-    if (systemInfo.need_fullpath) {
-        LOG("%s: we only support in-memory game :(\n", __func__);
-        goto out;
-    }
+    if (!systemInfo.need_fullpath) {
+        gameInfo.data = malloc(gameInfo.size);
+        if (!gameInfo.data) {
+            LOG("%s: couldn't allocate game's memory\n", __func__);
+            goto out;
+        }
 
-    gameInfo.data = malloc(gameInfo.size);
-    if (!gameInfo.data) {
-        LOG("%s: couldn't allocate game's memory\n", __func__);
-        goto out;
-    }
-
-    if (!fread((void*) gameInfo.data, gameInfo.size, 1, file)) {
-        LOG("%s: fread() failed, reason: %s\n", __func__, strerror(errno));
-        goto out;
+        if (!fread((void*) gameInfo.data, gameInfo.size, 1, file)) {
+            LOG("%s: fread() failed, reason: %s\n", __func__, strerror(errno));
+            goto out;
+        }
     }
 
     if (!gRetroCore.retro_load_game(&gameInfo)) {

@@ -25,6 +25,16 @@ lret_init(lua_State* L)
     // TODO(sgosselin): implement.
     LOG("%s: called\n", __func__);
 
+    char const* corePath = luaL_checkstring(L, 2);
+    char const* gamePath = luaL_checkstring(L, 3);
+    LOG("%s: corePath=%s gamePath=%s\n",
+            __func__, corePath, gamePath);
+
+    retro_intf_ret_t ret = retro_intf_init(corePath, gamePath);
+    if (ret != kRetroIntfRetNoError) {
+        luaL_error(L, "retro_intf_init() failed. :(");
+    }
+
     return 0;
 }
 
