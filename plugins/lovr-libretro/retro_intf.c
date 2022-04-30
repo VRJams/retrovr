@@ -149,9 +149,6 @@ _retro_intf_core_load_core_from_file(char const* corePath)
         goto out;
     }
 
-    // Load all supported libretro core symbols. Note that some functions
-    // are not supported. These are not necessary to run games with most
-    // cores.
 #define _core_load_sym(S) do {                                          \
     *(void **) &gRetroCore.S = dlsym(gRetroCore.handle, #S);            \
     if (gRetroCore.S == NULL) {                                         \
@@ -177,7 +174,6 @@ _retro_intf_core_load_core_from_file(char const* corePath)
     _core_load_sym(retro_set_audio_sample_batch);
 #undef _core_load_sym
 
-    // Register libretro callbacks.
     gRetroCore.retro_set_environment(_retro_cb_environment);
     gRetroCore.retro_set_video_refresh(_retro_cb_video_refresh);
     gRetroCore.retro_set_input_poll(_retro_cb_input_poll);
@@ -185,7 +181,6 @@ _retro_intf_core_load_core_from_file(char const* corePath)
     gRetroCore.retro_set_audio_sample(_retro_cb_audio_sample);
     gRetroCore.retro_set_audio_sample_batch(_retro_cb_audio_sample_batch);
 
-    // We are done, let the core initialize itself.
     gRetroCore.retro_init();
     gRetroCore.initialized = true;
 
