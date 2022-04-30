@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <dlfcn.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -128,6 +129,8 @@ static void
 _retro_cb_video_refresh(void const* data, unsigned width, unsigned height,
     size_t pitch)
 {
+    LOG("%s: width=%u height=%u pitch=%zu\n",
+        __func__, width, height, pitch);
     //TODO.
 }
 
@@ -193,11 +196,52 @@ out:
 static bool
 _retro_intf_core_load_game_from_file(char const* gamePath)
 {
+    bool success = false;
+
     assert(gamePath);
     assert(gRetroCore.handle);
     assert(gRetroCore.retro_load_game);
 
-    // TODO.
+    FILE* file = fopen(gamePath, "rb");
+    if (!file) {
+        LOG("%s: fopen() failed, reason: %s\n", __func__, strerror(errno));
+        goto out;
+    }
+
+    struct retro_game_info game_info = { gamePath, 0 };
+    fseek(file, 0, SEEK_END);
+    game_info.size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    struct retro_system_info system_info = {0};
+    gRetroCore.retro_get_system_info(&system_info);
+
+    // TODO(sgosselin): support cores that do not handle in-memory game.
+    if (system_info.need_fullpath) {
+        LOG("%s: we only support in-memory game :(\n", __func__);
+        goto out;
+    }
+
+    game_info.data = malloc(game_info.size);
+    if (!game_info.data) {
+        LOG("%s: couldn't allocate game's memory\n", __func__);
+        goto out;
+    }
+
+    if (!fread((void*) game_info.data, game_info.size, 1, file)) {
+        LOG("%s: fread() failed, reason: %s\n", __func__, strerror(errno));
+        goto out;
+    }
+
+    if (!gRetroCore.retro_load_game(&game_info)) {
+        LOG("%s: libretro failed to load game '%s'\n",
+            __func__, gamePath);
+        goto out;
+    }
+
+    success = true;
+out:
+    (void)fclose(file);
 
     return true;
 }
