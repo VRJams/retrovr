@@ -13,7 +13,7 @@ static int
 lret_destroy(lua_State* L)
 {
     // TODO(sgosselin): implement.
-    LOG("%s: called", __func__);
+    LOG("%s: called\n", __func__);
 
     return 0;
 }
@@ -23,7 +23,7 @@ static int
 lret_init(lua_State* L)
 {
     // TODO(sgosselin): implement.
-    LOG("%s: called", __func__);
+    LOG("%s: called\n", __func__);
 
     return 0;
 }
@@ -33,7 +33,7 @@ static int
 lret_run_once(lua_State* L)
 {
     // TODO(sgosselin): implement.
-    LOG("%s: called", __func__);
+    LOG("%s: called\n", __func__);
 
     return 0;
 }
@@ -43,7 +43,7 @@ static int
 lret_set_video_buffer(lua_State* L)
 {
     // TODO(sgosselin): implement.
-    LOG("%s: called", __func__);
+    LOG("%s: called\n", __func__);
 
     return 0;
 }
@@ -58,7 +58,7 @@ static const luaL_Reg lret_api[] = {
 int
 luaopen_libretro(lua_State* L)
 {
-    LOG("%s: called", __func__);
+    LOG("%s: called\n", __func__);
 
     lua_newtable(L);
     luaL_register(L, NULL, lret_api);
@@ -70,8 +70,6 @@ luaopen_libretro(lua_State* L)
     lua_setfield(L, -2, "__gc");
     lua_setmetatable(L, -2);
     lua_setfield(L, -2, "");
-
-    LOG("%s: registered functions", __func__);
 
     return 1;
 }

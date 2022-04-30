@@ -37,13 +37,32 @@ function lovr.load()
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
 
-  print(dump(lovr.retro))
-  lovr.retro.init()
+  -- we will create a new image that is a backing store.
+  img = lovr.data.newImage(640, 478, "rgba", nil)
+  for y = 0, img:getHeight()-1, 1
+  do
+    for x = 0, img:getWidth()-1, 1
+    do
+      img:setPixel(x, y, (x / 640.0), 0, 0)
+    end
+  end
 
-  -- create a blob to hold the video buffer
-  video_buffer = lovr.data.newBlob(640*478*4, 'video_buffer')
-  -- register it with libretro
-  lovr.retro.set_video_buffer(video_buffer.getPointer())
+  -- libretro init
+  lovr.retro:init()
+  lovr.retro:set_video_buffer(img:getBlob():getPointer())
+  lovr.retro:run_once()
+
+  tex = lovr.graphics.newTexture(img)
+  mat = lovr.graphics.newMaterial(tex)
+
+  for y = 0, img:getHeight()-1, 1
+  do
+    for x = 0, img:getWidth()-1, 1
+    do
+      img:setPixel(x, y, 0, (x / 640.0), 0)
+    end
+  end
+  tex:replacePixels(img)
 end
 
 function lovr.draw()
@@ -52,6 +71,6 @@ function lovr.draw()
   lovr.graphics.setShader()
 
   -- screen plane where libretro will be retroprojected
-  lovr.graphics.plane('fill', 0, 1, -4, 3, 2, 0, 0, 0, 0)
+  lovr.graphics.plane(mat, 0, 1, -4, 3, 2, 0, 0, 0, 0)
   -- TODO: apply the video buffer
 end
