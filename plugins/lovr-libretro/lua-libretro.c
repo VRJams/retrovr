@@ -32,8 +32,7 @@ lret_init(lua_State* L)
 static int
 lret_run_once(lua_State* L)
 {
-    // TODO(sgosselin): implement.
-    LOG("%s: called\n", __func__);
+    retro_intf_run();
 
     return 0;
 }
@@ -42,8 +41,16 @@ lret_run_once(lua_State* L)
 static int
 lret_set_video_buffer(lua_State* L)
 {
-    // TODO(sgosselin): implement.
-    LOG("%s: called\n", __func__);
+    void* buf;
+    if (lua_type(L, 2) == LUA_TNIL) {
+        buf = NULL;
+    } else if (lua_type(L, 2) == LUA_TLIGHTUSERDATA) {
+        buf = lua_touserdata(L, 2);
+    } else {
+        luaL_error(L, "set_video_buffer() expects a pointer or nil");
+    }
+
+    retro_intf_set_video_buffer(buf);
 
     return 0;
 }

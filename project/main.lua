@@ -37,32 +37,23 @@ function lovr.load()
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
 
-  -- we will create a new image that is a backing store.
-  img = lovr.data.newImage(640, 478, "rgba", nil)
-  for y = 0, img:getHeight()-1, 1
+  -- create an image to be the backing store of libretro video buffer.
+  videoImg = lovr.data.newImage(640, 478, "rgba", nil)
+  for y = 0, videoImg:getHeight() - 1, 1
   do
-    for x = 0, img:getWidth()-1, 1
+    for x = 0, videoImg:getWidth() - 1, 1
     do
-      img:setPixel(x, y, (x / 640.0), 0, 0)
+      videoImg:setPixel(x, y, 0, 0, 0)
     end
   end
 
-  -- libretro init
+  -- libretro: init the core, game and set the audio/video buffers.
   lovr.retro:init()
-  lovr.retro:set_video_buffer(img:getBlob():getPointer())
+  lovr.retro:set_video_buffer(videoImg:getBlob():getPointer())
   lovr.retro:run_once()
 
-  tex = lovr.graphics.newTexture(img)
+  tex = lovr.graphics.newTexture(videoImg)
   mat = lovr.graphics.newMaterial(tex)
-
-  for y = 0, img:getHeight()-1, 1
-  do
-    for x = 0, img:getWidth()-1, 1
-    do
-      img:setPixel(x, y, 0, (x / 640.0), 0)
-    end
-  end
-  tex:replacePixels(img)
 end
 
 function lovr.draw()
@@ -70,7 +61,10 @@ function lovr.draw()
   lovr.graphics.plane('fill', 0, 0, 0, 25, 25, -math.pi / 2, 1, 0, 0)
   lovr.graphics.setShader()
 
+  -- libretro: run the core and update the screen texture.
+  lovr.retro:run_once()
+  tex:replacePixels(videoImg)
+
   -- screen plane where libretro will be retroprojected
   lovr.graphics.plane(mat, 0, 1, -4, 3, 2, 0, 0, 0, 0)
-  -- TODO: apply the video buffer
 end
