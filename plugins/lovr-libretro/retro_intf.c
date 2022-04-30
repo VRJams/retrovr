@@ -130,9 +130,28 @@ static void
 _retro_cb_video_refresh(void const* data, unsigned width, unsigned height,
     size_t pitch)
 {
-    LOG("%s: width=%u height=%u pitch=%zu\n",
-        __func__, width, height, pitch);
     //TODO.
+
+    if (gVideo.dstBuf) {
+        static int offset = 0;
+
+        uint8_t* data = (uint8_t*) gVideo.dstBuf;
+        const size_t bufW = 640;
+        const size_t bufH = 478;
+        const size_t bufBpp = 4;
+
+        for (size_t y = 0; y < bufH; ++y) {
+            for (size_t x = 0; x < bufW; ++x) {
+                uint8_t color = (((float) x) / bufW) * 255;
+                data[(y * bufW * bufBpp) + (x * bufBpp)] =
+                    (offset + color) % 255;
+                data[(y * bufW * bufBpp) + (x * bufBpp) + 1] = 0;
+                data[(y * bufW * bufBpp) + (x * bufBpp) + 2] = 0;
+            }
+        }
+
+        offset++;
+    }
 }
 
 static bool
@@ -305,30 +324,6 @@ retro_intf_deinit(void)
 void
 retro_intf_run(void)
 {
-    // TODO(sgosselin): remove this, right now the function will generate a
-    // dummy texture that can be used to prove the pipeline is working. The
-    // function should instead rely on the core video frame generation.
-    if (gVideo.dstBuf) {
-        static int offset = 0;
-
-        uint8_t* data = (uint8_t*) gVideo.dstBuf;
-        const size_t bufW = 640;
-        const size_t bufH = 478;
-        const size_t bufBpp = 4;
-
-        for (size_t y = 0; y < bufH; ++y) {
-            for (size_t x = 0; x < bufW; ++x) {
-                uint8_t color = (((float) x) / bufW) * 255;
-                data[(y * bufW * bufBpp) + (x * bufBpp)] =
-                    (offset + color) % 255;
-                data[(y * bufW * bufBpp) + (x * bufBpp) + 1] = 0;
-                data[(y * bufW * bufBpp) + (x * bufBpp) + 2] = 0;
-            }
-        }
-
-        offset++;
-    }
-
     if (gRetroCore.initialized) {
         gRetroCore.retro_run();
     }
