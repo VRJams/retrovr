@@ -48,6 +48,48 @@ static retro_intf_core_t gRetroCore;
 // The destination of libretro's video frame.
 static void* gVideoBufferPtr = NULL;
 
+
+static void
+_retro_cb_audio_sample(int16_t left, int16_t right)
+{
+    //TODO.
+}
+
+static size_t
+_retro_cb_audio_sample_batch(int16_t const* data, size_t frame)
+{
+    //TODO.
+    return frame;
+}
+
+static bool
+_retro_cb_environment(unsigned cmd, void* data)
+{
+    // TODO.
+    return false;
+}
+
+static void
+_retro_cb_input_poll(void)
+{
+    //TODO.
+}
+
+static int16_t
+_retro_cb_input_state(unsigned port, unsigned device, unsigned index,
+    unsigned id)
+{
+    //TODO.
+    return 0;
+}
+
+static void
+_retro_cb_video_refresh(void const* data, unsigned width, unsigned height,
+    size_t pitch)
+{
+    //TODO.
+}
+
 static bool
 _retro_intf_core_load_core_from_file(char const* corePath)
 {
@@ -89,6 +131,18 @@ _retro_intf_core_load_core_from_file(char const* corePath)
     _core_load_sym(retro_set_audio_sample);
     _core_load_sym(retro_set_audio_sample_batch);
 #undef _core_load_sym
+
+    // Register libretro callbacks.
+    gRetroCore.retro_set_environment(_retro_cb_environment);
+    gRetroCore.retro_set_video_refresh(_retro_cb_video_refresh);
+    gRetroCore.retro_set_input_poll(_retro_cb_input_poll);
+    gRetroCore.retro_set_input_state(_retro_cb_input_state);
+    gRetroCore.retro_set_audio_sample(_retro_cb_audio_sample);
+    gRetroCore.retro_set_audio_sample_batch(_retro_cb_audio_sample_batch);
+
+    // We are done, let the core initialize itself.
+    gRetroCore.retro_init();
+    gRetroCore.initialized = true;
 
     success = true;
 out:
