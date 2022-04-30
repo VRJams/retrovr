@@ -38,7 +38,7 @@ function lovr.load()
   lovr.graphics.setBackgroundColor(.05, .05, .05)
 
   -- create an image to be the backing store of libretro video buffer.
-  videoImg = lovr.data.newImage(640, 478, "rgba", nil)
+  videoImg = lovr.data.newImage(320, 240, "rgba", nil)
   for y = 0, videoImg:getHeight() - 1, 1
   do
     for x = 0, videoImg:getWidth() - 1, 1
@@ -70,5 +70,5 @@ function lovr.draw()
   tex:replacePixels(videoImg)
 
   -- screen plane where libretro will be retroprojected
-  lovr.graphics.plane(mat, 0, 1, -4, 3, 2, 0, 0, 0, 0)
+  lovr.graphics.plane(mat, 0, 1, -4, 3, 2, math.pi, 0, 0, 1)
 end

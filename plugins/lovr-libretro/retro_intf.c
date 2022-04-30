@@ -98,6 +98,8 @@ _retro_cb_environment(unsigned cmd, void* data)
         break;
     case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
         gVideo.framePixelFormat = *((enum retro_pixel_format *) data);
+        LOG("%s: changing pixel format to fmt=%d\n", __func__,
+            gVideo.framePixelFormat);
         break;
     case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         *(const char **)data = ".";
@@ -130,27 +132,30 @@ static void
 _retro_cb_video_refresh(void const* data, unsigned width, unsigned height,
     size_t pitch)
 {
-    //TODO.
+    printf("w=%d h=%d\n", width, height);
+    if (!gVideo.dstBuf) {
+        return;
+    }
 
-    if (gVideo.dstBuf) {
-        static int offset = 0;
+    /*
+     * TODO: as of right now, clients specify an RGBA8888 buffer and we
+     * copy/convert the newly produced frame into the client's provided
+     * destination buffer. Instead, I am wondering if we can avoid these
+     * copies by either mmap'ing an OpenGL texture, or by providing the
+     * buffer to the core directly.
+     */
+    if (gVideo.framePixelFormat == RETRO_PIXEL_FORMAT_RGB565) {
+        uint16_t const* src = (uint16_t const*) data;
+        uint8_t* dst = gVideo.dstBuf;
 
-        uint8_t* data = (uint8_t*) gVideo.dstBuf;
-        const size_t bufW = 640;
-        const size_t bufH = 478;
-        const size_t bufBpp = 4;
-
-        for (size_t y = 0; y < bufH; ++y) {
-            for (size_t x = 0; x < bufW; ++x) {
-                uint8_t color = (((float) x) / bufW) * 255;
-                data[(y * bufW * bufBpp) + (x * bufBpp)] =
-                    (offset + color) % 255;
-                data[(y * bufW * bufBpp) + (x * bufBpp) + 1] = 0;
-                data[(y * bufW * bufBpp) + (x * bufBpp) + 2] = 0;
-            }
+        for (size_t i = 0; i < gVideo.frameWidth * gVideo.frameHeight; ++i) {
+            dst[4 * i + 0] = (255.f / 31.f) * ((src[i] & 0xf800) >> 11);
+            dst[4 * i + 1] = (255.f / 63.f) * ((src[i] & 0x07e0) >> 5);
+            dst[4 * i + 2] = (255.f / 31.f) * ((src[i] & 0x001f));
+            dst[4 * i + 3] = 255;
         }
-
-        offset++;
+    } else {
+        // TODO: support other format.
     }
 }
 
