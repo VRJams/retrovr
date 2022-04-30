@@ -197,7 +197,7 @@ out:
 void
 retro_intf_deinit(void)
 {
-    if (gRetroCore.retro_deinit) {
+    if (gRetroCore.initialized) {
         gRetroCore.retro_deinit();
     }
 
