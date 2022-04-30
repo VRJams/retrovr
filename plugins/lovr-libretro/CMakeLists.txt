@@ -17,7 +17,8 @@ target_include_directories(lua-libretro
 # if we are on Android, use liblog for logging into logcat instead of stdout
 if(ANDROID)
     find_library(log-lib log)
-    target_link_libraries(lua-libretro ${log-lib})
+    find_library(dl-lib NAMES libdl.so dl)
+    target_link_libraries(lua-libretro ${log-lib} ${dl-lib})
 endif()
 
 if(LOVR)

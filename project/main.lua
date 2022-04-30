@@ -48,8 +48,8 @@ function lovr.load()
   end
 
   -- libretro: init the core, game and set the audio/video buffers.
-  wdir = lovr.filesystem.getWorkingDirectory()
-  corePath = wdir .. "/pcsx_rearmed_libretro.dylib"
+  wdir = '/data/data/org.lovr.app'
+  corePath = wdir .. "/pcsx_rearmed_libretro_android.so"
   gamePath = wdir .. "/PointBlank.bin"
   lovr.retro:init(corePath, gamePath)
   lovr.retro:set_video_buffer(videoImg:getBlob():getPointer())
