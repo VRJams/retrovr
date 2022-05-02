@@ -22,13 +22,9 @@ lret_destroy(lua_State* L)
 static int
 lret_init(lua_State* L)
 {
-    // TODO(sgosselin): implement.
-    LOG("%s: called\n", __func__);
-
     char const* corePath = luaL_checkstring(L, 2);
     char const* gamePath = luaL_checkstring(L, 3);
-    LOG("%s: corePath=%s gamePath=%s\n",
-            __func__, corePath, gamePath);
+    LOG("%s: corePath=%s gamePath=%s\n", __func__, corePath, gamePath);
 
     retro_intf_ret_t ret = retro_intf_init(corePath, gamePath);
     if (ret != kRetroIntfRetNoError) {
@@ -75,8 +71,6 @@ static const luaL_Reg lret_api[] = {
 int
 luaopen_libretro(lua_State* L)
 {
-    LOG("%s: called\n", __func__);
-
     lua_newtable(L);
     luaL_register(L, NULL, lret_api);
 

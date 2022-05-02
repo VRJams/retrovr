@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <libretro.h>
+#include "libretro.h"
 
 // Interface with the libretro core.
 static struct {
