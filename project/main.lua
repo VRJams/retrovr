@@ -60,9 +60,10 @@ function lovr.load()
     print('    maxH='..video_desc.maxFrameH)
     screen_img = lovr.data.newImage(
         video_desc.maxFrameW, video_desc.maxFrameH, "rgba", nil)
+    retro.retro_intf_set_video_buffer(screen_img:getBlob():getPointer())
     -- create a material that will be used to retro-project the core video frame
     screen_tex = lovr.graphics.newTexture(screen_img)
-    screen_mat = lovr.graphics.newMaterial(screen_mat)
+    screen_mat = lovr.graphics.newMaterial(screen_tex)
 
     shader = lovr.graphics.newShader([[
         vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
@@ -91,17 +92,27 @@ end
 
 function lovr.update(dt)
     retro.retro_intf_step()
+    screen_tex:replacePixels(screen_img)
 end
 
 function lovr.draw()
-    -- plane for floor
+    -- Plane for floor.
     lovr.graphics.setBackgroundColor(.05, .05, .05)
     lovr.graphics.setShader(shader)
     lovr.graphics.plane('fill', 0, 0, 0, 25, 25, -math.pi / 2, 1, 0, 0)
     lovr.graphics.setShader()
 
-    -- plane for libretro framebuffer
-    lovr.graphics.plane(screen_mat, 0, 1, -4, 3, 2, math.pi, 1, 0, 0)
+    -- Plane for libretro framebuffer. Note that because libretro cores can dynamically
+    -- adjust the video buffer dimension, we need to adjust our texture mapping. We don't
+    -- have to re-create the texture though.
+    local video_desc = retro.retro_intf_get_video_desc()
+    local tex_w = video_desc.curFrameW / video_desc.maxFrameW
+    local tex_h = video_desc.curFrameH / video_desc.maxFrameH
+    lovr.graphics.plane(screen_mat,
+        0, 1, -4,                                       -- position
+        3, 2,                                           -- dimension
+        math.pi, 1, 0, 0,                               -- rotation
+        0, 0, tex_w, tex_h)                             -- texture
 end
 
 function lovr.keypressed(key, scancode, w)
