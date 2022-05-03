@@ -1,12 +1,26 @@
 retro = require('retro')
 
 -- TODO: dynamically select between keyboard and controller based on the OS
-USE_KEYBOARD = true
+USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
 KEYBOARD_KEYPRESSED = {}
 VIRTUAL_MOUSE_X = 0
 VIRTUAL_MOUSE_X_NORM = 0
 VIRTUAL_MOUSE_Y = 0
 VIRTUAL_MOUSE_Y_NORM = 0
+
+function raycast(rayPos, rayDir, planePos, planeDir)
+  local dot = rayDir:dot(planeDir)
+  if math.abs(dot) < .001 then
+    return nil
+  else
+    local distance = (planePos - rayPos):dot(planeDir) / dot
+    if distance > 0 then
+      return rayPos + rayDir * distance
+    else
+      return nil
+    end
+  end
+end
 
 function init_retro()
     local main_dir = lovr.filesystem.getWorkingDirectory()
