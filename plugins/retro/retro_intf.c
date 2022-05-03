@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <libretro.h>
+#include "libretro.h"
 
 /* main interface with a libretro core; functions must be looked up */
 static struct {

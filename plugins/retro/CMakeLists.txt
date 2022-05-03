@@ -7,12 +7,6 @@ add_library(
         ./retro_intf.c
 )
 
-target_include_directories(
-    retro
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
 if(LOVR)
     list(APPEND LOVR_PLUGIN_TARGETS retro)
 endif()
