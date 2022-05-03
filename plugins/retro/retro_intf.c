@@ -49,6 +49,7 @@ static struct {
     /* set by client, filled by the core video refresh callback */
     uint8_t*                    dst;
     /* set by the core */
+    enum retro_pixel_format     format;
     struct retro_game_geometry  geometry;
 } gVideoDesc;
 
@@ -97,30 +98,31 @@ _core_cb_audio_sample_batch(int16_t const* data, size_t frame)
 static bool
 _core_cb_environment(unsigned cmd, void* data)
 {
-	switch (cmd) {
-	case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
-		((struct retro_log_callback *) data)->log = _core_cb_log;
-		break;
-	case RETRO_ENVIRONMENT_GET_CAN_DUPE:
-		*((bool*)data) = true;
-		break;
-	case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
-		// TODO(sgosselin): implement this.
-		break;
-	case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
-		*(const char **)data = ".";
-		break;
-	case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
-		*(const char **)data = ".";
-		break;
-    case RETRO_ENVIRONMENT_SET_GEOMETRY:
-        gVideoDesc.geometry = *(const struct retro_game_geometry *) data;
-        break;
-	default:
-		return false;
-	}
+    switch (cmd) {
+        case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
+            ((struct retro_log_callback *) data)->log = _core_cb_log;
+            break;
+        case RETRO_ENVIRONMENT_GET_CAN_DUPE:
+            *((bool*)data) = true;
+            break;
+        case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
+            gVideoDesc.format = *((enum retro_pixel_format *) data);
+            printf("%s: changing pixel format (fmt=%d)\n", __func__, gVideoDesc.format);
+            break;
+        case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+            *(const char **)data = ".";
+            break;
+        case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
+            *(const char **)data = ".";
+            break;
+        case RETRO_ENVIRONMENT_SET_GEOMETRY:
+            gVideoDesc.geometry = *(const struct retro_game_geometry *) data;
+            break;
+        default:
+            return false;
+    }
 
-	return true;
+    return true;
 }
 
 static void
@@ -137,8 +139,6 @@ _core_cb_input_state(unsigned port, unsigned device, unsigned index,
 {
     assert(id < RETRO_INTF_INPUT_SIZE);
 
-    // TODO(sgosselin): we only support one controller at this time; for now
-    // let's ignore anything not coming from the first input port.
     if (port != 0 || index != 0) {
         return 0;
     }
@@ -150,10 +150,15 @@ static void
 _core_cb_video_refresh(void const* data, unsigned width, unsigned height,
         size_t pitch)
 {
-#if 0
     if (!gVideoDesc.dst) {
         return;
     }
+
+    // NOTE: the core can render a frame with a different size than what it specified
+    // as (max_width, max_height). In theory, the (width, height) passed as arguments
+    // should match with what the core configured with the _SET_GEOMETRY environment.
+    assert(width == gVideoDesc.geometry.base_width);
+    assert(height == gVideoDesc.geometry.base_height);
 
     /*
      * TODO: as of right now, clients specify an RGBA8888 buffer and we
@@ -162,20 +167,27 @@ _core_cb_video_refresh(void const* data, unsigned width, unsigned height,
      * copies by either mmap'ing an OpenGL texture, or by providing the
      * buffer to the core directly.
      */
-    if (gVideo.framePixelFormat == RETRO_PIXEL_FORMAT_RGB565) {
+    if (gVideoDesc.format == RETRO_PIXEL_FORMAT_RGB565) {
         uint16_t const* src = (uint16_t const*) data;
-        uint8_t* dst = gVideo.dstBuf;
 
-        for (size_t i = 0; i < gVideo.frameWidth * gVideo.frameHeight; ++i) {
-            dst[4 * i + 0] = (255.f / 31.f) * ((src[i] & 0xf800) >> 11);
-            dst[4 * i + 1] = (255.f / 63.f) * ((src[i] & 0x07e0) >> 5);
-            dst[4 * i + 2] = (255.f / 31.f) * ((src[i] & 0x001f));
-            dst[4 * i + 3] = 255;
+        for (size_t y = 0; y < height; ++y) {
+            for (size_t x = 0; x < width; ++x) {
+                const uint8_t r = (255.f / 31.f) * ((src[y * width + x] & 0xf800) >> 11);
+                const uint8_t g = (255.f / 63.f) * ((src[y * width + x] & 0x07e0) >> 5);
+                const uint8_t b = (255.f / 31.f) * ((src[y * width + x] & 0x001f));
+
+                const size_t dst_pitch = gVideoDesc.geometry.max_width * 4;
+
+                gVideoDesc.dst[y * dst_pitch + (x * 4) + 0] = r;
+                gVideoDesc.dst[y * dst_pitch + (x * 4) + 1] = 0;
+                gVideoDesc.dst[y * dst_pitch + (x * 4) + 2] = 0;
+                gVideoDesc.dst[y * dst_pitch + (x * 4) + 3] = 255;
+
+            }
         }
     } else {
         // TODO: support other format.
     }
-#endif
 }
 
 static bool
@@ -314,7 +326,7 @@ retro_intf_init(char const* corePath, char const* gamePath)
     printf("%s: core initialized, core:%s game:%s\n",
             __func__, corePath, gamePath);
 
-    // Determine the video frame dimension.
+    // Determine the initial video configuration.
     struct retro_system_av_info avInfo = {0};
     gCore.retro_get_system_av_info(&avInfo);
     gVideoDesc.geometry = avInfo.geometry;
@@ -375,6 +387,7 @@ void
 retro_intf_set_video_buffer(void* dst)
 {
     gVideoDesc.dst = dst;
+    printf("%s: set video buffer dst=%p\n", __func__, dst);
 }
 
 void
