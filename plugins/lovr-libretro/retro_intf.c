@@ -300,6 +300,16 @@ retro_intf_init(char const* corePath, char const* gamePath)
     LOG("%s: av.w=%d av.h=%d\n", __func__,
         avInfo.geometry.max_width, avInfo.geometry.max_height);
 
+    // TODO: should I run the core once to determine the pixel format? The
+    // avInfo object above does not contain this information unfortunately.
+    //
+    // TODO: it seems the avInfo reports a max width/height. I noticed
+    // the core will dynamically resize the output frame so clients can't
+    // just allocate a framebuffer and provide it. At the end, I'll have to
+    // make a copy anyway so at this point I'd rather just have the client
+    // dynamically resize their buffer based on the result of run() and then
+    // call a function to get the frame out?
+
 out:
     if (ret != kRetroIntfRetNoError)
         retro_intf_deinit();
