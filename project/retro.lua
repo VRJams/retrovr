@@ -16,6 +16,12 @@ ffi.cdef[[
         LIGHTGUN_RELOAD     = 16,
     };
 
+    enum {
+        DEVICE_NONE = 0,
+        DEVICE_JOYPAD = 1,
+        DEVICE_LIGHTGUN = 4,
+    };
+
 
     /* defined in retro_intf.h */
 
@@ -34,6 +40,7 @@ ffi.cdef[[
 
     bool retro_intf_init(char const*, char const*);
     retro_intf_video_desc_t retro_intf_get_video_desc(void);
+    void retro_intf_set_controller(int port, int type, int id);
     void retro_intf_set_input_callback(void (*cb)(input_state_t *));
     void retro_intf_set_video_buffer(void* dst);
     void retro_intf_step(void);

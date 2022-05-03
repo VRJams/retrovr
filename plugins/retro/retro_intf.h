@@ -31,7 +31,10 @@ void retro_intf_deinit(void);
 /// the rendering.
 retro_intf_video_desc_t retro_intf_get_video_desc(void);
 
-/// Register the callback for inputs polling.
+/// Set the controller mapping.
+void retro_intf_set_controller(int port, int type, int id);
+
+/// Set the callback for inputs polling.
 void retro_intf_set_input_callback(void (*cb)(input_state_t *));
 
 /// Step the core once.

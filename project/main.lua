@@ -3,6 +3,10 @@ retro = require('retro')
 -- TODO: dynamically select between keyboard and controller based on the OS
 USE_KEYBOARD = true
 KEYBOARD_KEYPRESSED = {}
+VIRTUAL_MOUSE_X = 0
+VIRTUAL_MOUSE_X_NORM = 0
+VIRTUAL_MOUSE_Y = 0
+VIRTUAL_MOUSE_Y_NORM = 0
 
 function init_retro()
     local main_dir = '.'
@@ -11,6 +15,8 @@ function init_retro()
 
     retro_success = retro.retro_intf_init(core_path, game_path)
     assert(retro_success)
+
+    retro.retro_intf_set_controller(0, retro.DEVICE_LIGHTGUN, 0)
 
     retro.retro_intf_set_input_callback(function (input_state)
         if USE_KEYBOARD then
@@ -28,6 +34,11 @@ function init_retro()
                     KEYBOARD_KEYPRESSED['2'] or 0
             input_state.values[retro.LIGHTGUN_AUX_C] =
                     KEYBOARD_KEYPRESSED['3'] or 0
+            -- TODO: this is not so simple, we must adjust the coordinate into screen space.
+            input_state.values[retro.LIGHTGUN_SCREEN_X] =
+                 0x8000 * (2 * VIRTUAL_MOUSE_X_NORM - 1);
+            input_state.values[retro.LIGHTGUN_SCREEN_Y] =
+                 0x8000 * (2 * VIRTUAL_MOUSE_Y_NORM - 1);
         else
             input_state.values[retro.LIGHTGUN_TRIGGER] = lovr.headset.isDown(
                     'right', 'trigger') or 0
@@ -116,9 +127,30 @@ function lovr.draw()
 end
 
 function lovr.keypressed(key, scancode, w)
-    KEYBOARD_KEYPRESSED[key] = 1
+    if USE_KEYBOARD then
+        KEYBOARD_KEYPRESSED[key] = 1
+
+        -- virtual mouse
+        if key == 'i' then
+            VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y - 5;
+        elseif key == 'k' then
+            VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y + 5;
+        elseif key == 'j' then
+            VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X - 5;
+        elseif key == 'l' then
+            VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X + 5;
+        end
+        -- TODO: technically, we could work with only normalized mouse position.
+        local video_desc = retro.retro_intf_get_video_desc()
+        VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X % video_desc.curFrameW
+        VIRTUAL_MOUSE_X_NORM = VIRTUAL_MOUSE_X / video_desc.curFrameW
+        VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X % video_desc.curFrameH
+        VIRTUAL_MOUSE_Y_NORM = VIRTUAL_MOUSE_Y / video_desc.curFrameH
+    end
 end
 
 function lovr.keyreleased(key, scancode)
-    KEYBOARD_KEYPRESSED[key] = 0
+    if USE_KEYBOARD then
+        KEYBOARD_KEYPRESSED[key] = 0
+    end
 end

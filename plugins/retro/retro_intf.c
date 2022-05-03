@@ -179,8 +179,8 @@ _core_cb_video_refresh(void const* data, unsigned width, unsigned height,
                 const size_t dst_pitch = gVideoDesc.geometry.max_width * 4;
 
                 gVideoDesc.dst[y * dst_pitch + (x * 4) + 0] = r;
-                gVideoDesc.dst[y * dst_pitch + (x * 4) + 1] = 0;
-                gVideoDesc.dst[y * dst_pitch + (x * 4) + 2] = 0;
+                gVideoDesc.dst[y * dst_pitch + (x * 4) + 1] = g;
+                gVideoDesc.dst[y * dst_pitch + (x * 4) + 2] = b;
                 gVideoDesc.dst[y * dst_pitch + (x * 4) + 3] = 255;
 
             }
@@ -375,6 +375,17 @@ retro_intf_get_video_desc(void)
     //        __func__, desc.curFrameW, desc.curFrameH, desc.maxFrameW, desc.maxFrameH);
 
     return desc;
+}
+
+void
+retro_intf_set_controller(int port, int type, int id)
+{
+    assert(port == 0);
+
+    // TODO(sgosselin): the subclass macro should be done in lua but this does not
+    // play well with ffi so let's do the macro conversion here. Clients will just
+    // pass the type and id.
+    gCore.retro_set_controller_port_device(0, RETRO_DEVICE_SUBCLASS(type, id));
 }
 
 void
