@@ -51,7 +51,7 @@ static void (*gInputCallback)(input_state_t *);
 static input_state_t gInputState;
 
 static void
-_retro_intf_dump_input_state(input_state_t const* state)
+_dump_input_state(input_state_t const* state)
 {
     printf("input_state@%p={\n", state);
     for (size_t i = 0; i < RETRO_INTF_INPUT_SIZE; ++i) {
@@ -117,6 +117,7 @@ _core_cb_input_poll(void)
 {
     if (gInputCallback) {
         gInputCallback(&gInputState);
+        //_dump_input_state(&gInputState);
     }
 }
 
@@ -315,4 +316,13 @@ void
 retro_intf_set_input_callback(void (*cb)(input_state_t *))
 {
     gInputCallback = cb;
+}
+
+
+void
+retro_intf_step(void)
+{
+    if (!gCore.initialized)
+        return;
+    gCore.retro_run();
 }

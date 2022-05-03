@@ -12,6 +12,8 @@ ffi.cdef[[
         LIGHTGUN_AUX_C      = 8,
         LIGHTGUN_START      = 6,
         LIGHTGUN_SELECT     = 7,
+        LIGHTGUN_TRIGGER    = 2,
+        LIGHTGUN_RELOAD     = 16,
     };
 
     /* defined in retro_intf.h */
@@ -25,6 +27,7 @@ ffi.cdef[[
     /* defined in retro_intf.h */
     bool retro_intf_init(char const*, char const*);
     void retro_intf_set_input_callback(void (*cb)(input_state_t *));
+    void retro_intf_step(void);
 ]]
 
 return retro

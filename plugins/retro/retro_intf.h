@@ -19,3 +19,6 @@ void retro_intf_deinit(void);
 
 /// Register the callback for inputs polling.
 void retro_intf_set_input_callback(void (*cb)(input_state_t *));
+
+/// Step the core once.
+void retro_intf_step(void);
