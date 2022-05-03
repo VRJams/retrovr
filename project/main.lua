@@ -51,6 +51,19 @@ function lovr.load()
     -- initialize retro
     init_retro()
 
+    -- create a backing texture for the libretro core video frame
+    local video_desc = retro.retro_intf_get_video_desc()
+    print('video_desc: ')
+    print('    curW='..video_desc.curFrameW)
+    print('    curH='..video_desc.curFrameW)
+    print('    maxW='..video_desc.maxFrameW)
+    print('    maxH='..video_desc.maxFrameH)
+    screen_img = lovr.data.newImage(
+        video_desc.maxFrameW, video_desc.maxFrameH, "rgba", nil)
+    -- create a material that will be used to retro-project the core video frame
+    screen_tex = lovr.graphics.newTexture(screen_img)
+    screen_mat = lovr.graphics.newMaterial(screen_mat)
+
     shader = lovr.graphics.newShader([[
         vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
             return projection * transform * vertex;
@@ -81,10 +94,14 @@ function lovr.update(dt)
 end
 
 function lovr.draw()
+    -- plane for floor
     lovr.graphics.setBackgroundColor(.05, .05, .05)
     lovr.graphics.setShader(shader)
     lovr.graphics.plane('fill', 0, 0, 0, 25, 25, -math.pi / 2, 1, 0, 0)
     lovr.graphics.setShader()
+
+    -- plane for libretro framebuffer
+    lovr.graphics.plane(screen_mat, 0, 1, -4, 3, 2, math.pi, 1, 0, 0)
 end
 
 function lovr.keypressed(key, scancode, w)

@@ -44,6 +44,14 @@ static struct {
 	void (*retro_set_audio_sample_batch)(retro_audio_sample_batch_t);
 } gCore;
 
+/* description of the current video configuration */
+static struct {
+    /* set by client, filled by the core video refresh callback */
+    uint8_t*                    dst;
+    /* set by the core */
+    struct retro_game_geometry  geometry;
+} gVideoDesc;
+
 /* clients registered callbacks */
 static void (*gInputCallback)(input_state_t *);
 
@@ -105,6 +113,9 @@ _core_cb_environment(unsigned cmd, void* data)
 	case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
 		*(const char **)data = ".";
 		break;
+    case RETRO_ENVIRONMENT_SET_GEOMETRY:
+        gVideoDesc.geometry = *(const struct retro_game_geometry *) data;
+        break;
 	default:
 		return false;
 	}
@@ -117,7 +128,6 @@ _core_cb_input_poll(void)
 {
     if (gInputCallback) {
         gInputCallback(&gInputState);
-        //_dump_input_state(&gInputState);
     }
 }
 
@@ -140,7 +150,32 @@ static void
 _core_cb_video_refresh(void const* data, unsigned width, unsigned height,
         size_t pitch)
 {
-    // TODO(sgosselin): implement me.
+#if 0
+    if (!gVideoDesc.dst) {
+        return;
+    }
+
+    /*
+     * TODO: as of right now, clients specify an RGBA8888 buffer and we
+     * copy/convert the newly produced frame into the client's provided
+     * destination buffer. Instead, I am wondering if we can avoid these
+     * copies by either mmap'ing an OpenGL texture, or by providing the
+     * buffer to the core directly.
+     */
+    if (gVideo.framePixelFormat == RETRO_PIXEL_FORMAT_RGB565) {
+        uint16_t const* src = (uint16_t const*) data;
+        uint8_t* dst = gVideo.dstBuf;
+
+        for (size_t i = 0; i < gVideo.frameWidth * gVideo.frameHeight; ++i) {
+            dst[4 * i + 0] = (255.f / 31.f) * ((src[i] & 0xf800) >> 11);
+            dst[4 * i + 1] = (255.f / 63.f) * ((src[i] & 0x07e0) >> 5);
+            dst[4 * i + 2] = (255.f / 31.f) * ((src[i] & 0x001f));
+            dst[4 * i + 3] = 255;
+        }
+    } else {
+        // TODO: support other format.
+    }
+#endif
 }
 
 static bool
@@ -280,10 +315,12 @@ retro_intf_init(char const* corePath, char const* gamePath)
             __func__, corePath, gamePath);
 
     // Determine the video frame dimension.
-    struct retro_system_av_info avInfo;
+    struct retro_system_av_info avInfo = {0};
     gCore.retro_get_system_av_info(&avInfo);
-    //gVideo.frameWidth = avInfo.geometry.base_width;
-    //gVideo.frameHeight = avInfo.geometry.base_height;
+    gVideoDesc.geometry = avInfo.geometry;
+    //printf("%s: w=%u h=%u mw=%u mh=%u\n", __func__,
+    //        gVideoDesc.geometry.base_width, gVideoDesc.geometry.base_height,
+    //        gVideoDesc.geometry.max_width, gVideoDesc.geometry.max_height);
 
     success = true;
 out:
@@ -312,12 +349,33 @@ retro_intf_deinit(void)
     (void)memset(&gCore, 0, sizeof(gCore));
 }
 
+retro_intf_video_desc_t
+retro_intf_get_video_desc(void)
+{
+    retro_intf_video_desc_t desc = {
+        .curFrameW = gVideoDesc.geometry.base_width,
+        .curFrameH = gVideoDesc.geometry.base_height,
+        .maxFrameW = gVideoDesc.geometry.max_width,
+        .maxFrameH = gVideoDesc.geometry.max_height,
+    };
+
+    //printf("%s: w=%u h=%u mw=%u mh=%u\n",
+    //        __func__, desc.curFrameW, desc.curFrameH, desc.maxFrameW, desc.maxFrameH);
+
+    return desc;
+}
+
 void
 retro_intf_set_input_callback(void (*cb)(input_state_t *))
 {
     gInputCallback = cb;
 }
 
+void
+retro_intf_set_video_buffer(void* dst)
+{
+    gVideoDesc.dst = dst;
+}
 
 void
 retro_intf_step(void)
