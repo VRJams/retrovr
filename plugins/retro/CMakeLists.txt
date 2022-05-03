@@ -7,6 +7,12 @@ add_library(
         ./retro_intf.c
 )
 
+if(ANDROID)
+    find_library(log-lib log)
+    find_library(dl-lib NAMES libdl.so dl)
+    target_link_libraries(retro ${log-lib} ${dl-lib})
+endif()
+
 if(LOVR)
     list(APPEND LOVR_PLUGIN_TARGETS retro)
 endif()

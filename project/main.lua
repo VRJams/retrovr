@@ -9,7 +9,12 @@ VIRTUAL_MOUSE_Y = 0
 VIRTUAL_MOUSE_Y_NORM = 0
 
 function init_retro()
-    local main_dir = '.'
+    local main_dir = lovr.filesystem.getWorkingDirectory()
+    if lovr.system.getOS() == 'Android' then
+        main_dir =  '/data/data/org.lovr.app'
+    end
+    print('main_dir: ' .. main_dir)
+
     local core_path = main_dir .. '/pcsx_rearmed_libretro.so'
     local game_path = main_dir .. '/Point Blank.bin'
 
