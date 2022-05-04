@@ -394,11 +394,11 @@ retro_intf_get_video_desc(void)
 void
 retro_intf_set_controller(int port, int type, int id)
 {
-    assert(port == 0);
+    if (port != 0) {
+        printf("%s: ignored unsupported input port %d\n", __func__, port);
+        return;
+    }
 
-    // TODO(sgosselin): the subclass macro should be done in lua but this does not
-    // play well with ffi so let's do the macro conversion here. Clients will just
-    // pass the type and id.
     gCore.retro_set_controller_port_device(0, RETRO_DEVICE_SUBCLASS(type, id));
 }
 
