@@ -197,7 +197,7 @@ function lovr.draw()
         lovr.graphics.setColor(1, 1, 1)
         lovr.graphics.sphere(position, .01)
         -- draw hand direction
-        lovr.graphics.line(position, tip)
+        lovr.graphics.line(position, position + 0.2 * tip:normalize())
         lovr.graphics.setColor(1, 1, 1)
     end
 
