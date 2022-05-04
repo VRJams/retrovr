@@ -248,10 +248,6 @@ _retro_intf_load_core_from_file(char const* corePath)
     gCore.retro_init();
     gCore.initialized = true;
 
-	// TODO(sgosselin): this should not be set here.
-    gCore.retro_set_controller_port_device(0,
-            RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_LIGHTGUN, 0));
-
     success = true;
 out:
     return success;
