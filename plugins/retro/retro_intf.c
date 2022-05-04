@@ -284,8 +284,7 @@ _retro_intf_load_game_from_file(char const* gamePath)
         }
 
         if (!fread((void*) gameInfo.data, gameInfo.size, 1, file)) {
-            printf("%s: fread() failed, reason: %s\n",
-					__func__, strerror(errno));
+            printf("%s: fread() failed, reason: %s\n", __func__, strerror(errno));
             goto out;
         }
     }
@@ -315,13 +314,11 @@ retro_intf_init(char const* corePath, char const* gamePath)
     assert(!gCore.handle);
     assert(!gCore.initialized);
 
-    // Firstly, load the core from its .so.
     if (!_retro_intf_load_core_from_file(corePath)) {
         printf("%s: could not load core '%s'\n", __func__, corePath);
         goto out;
     }
 
-    // Secondly, load the game (aka ROM).
     if (!_retro_intf_load_game_from_file(gamePath)) {
         printf("%s: could not load game '%s'\n", __func__, gamePath);
         goto out;
@@ -331,11 +328,11 @@ retro_intf_init(char const* corePath, char const* gamePath)
     printf("%s: core initialized, core:%s game:%s\n",
             __func__, corePath, gamePath);
 
-    // Determine the initial a/v configuration.
+    // Determine the A/V set-up now so the client can configure the frontend.
     struct retro_system_av_info avInfo = {0};
     gCore.retro_get_system_av_info(&avInfo);
-    gVideoDesc.geometry = avInfo.geometry;
     gAudioDesc.sampleRate = avInfo.timing.sample_rate;
+    gVideoDesc.geometry = avInfo.geometry;
 
     success = true;
 out:
@@ -356,8 +353,7 @@ retro_intf_deinit(void)
     if (gCore.handle) {
         int ret = dlclose(gCore.handle);
         if (ret != 0) {
-            printf("%s: dlclose() failed, reason: %s\n",
-                    __func__, dlerror());
+            printf("%s: dlclose() failed, reason: %s\n", __func__, dlerror());
         }
     }
 
