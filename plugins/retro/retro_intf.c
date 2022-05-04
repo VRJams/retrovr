@@ -60,7 +60,7 @@ static struct {
     uint16_t*                   dst;
     size_t                      dstLen;
     size_t                      dstInd;
-    double                      sample_rate;
+    double                      sampleRate;
 } gAudioDesc;
 
 /* clients registered callbacks */
@@ -349,7 +349,7 @@ retro_intf_init(char const* corePath, char const* gamePath)
     struct retro_system_av_info avInfo = {0};
     gCore.retro_get_system_av_info(&avInfo);
     gVideoDesc.geometry = avInfo.geometry;
-    gAudioDesc.sample_rate = avInfo.timing.sample_rate;
+    gAudioDesc.sampleRate = avInfo.timing.sample_rate;
 
     success = true;
 out:
@@ -442,5 +442,5 @@ retro_intf_step(void)
 double
 retro_intf_get_audio_sample_rate(void)
 {
-    return gAudioDesc.sample_rate;
+    return gAudioDesc.sampleRate;
 }
