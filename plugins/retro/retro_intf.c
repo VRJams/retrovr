@@ -179,6 +179,7 @@ _core_cb_video_refresh(void const* data, unsigned width, unsigned height,
      */
     if (gVideoDesc.format == RETRO_PIXEL_FORMAT_RGB565) {
         uint16_t const* src = (uint16_t const*) data;
+        const size_t dstPitch = gVideoDesc.geometry.max_width * 4;
 
         for (size_t y = 0; y < height; ++y) {
             for (size_t x = 0; x < width; ++x) {
@@ -186,12 +187,10 @@ _core_cb_video_refresh(void const* data, unsigned width, unsigned height,
                 const uint8_t g = (255.f / 63.f) * ((src[y * width + x] & 0x07e0) >> 5);
                 const uint8_t b = (255.f / 31.f) * ((src[y * width + x] & 0x001f));
 
-                const size_t dst_pitch = gVideoDesc.geometry.max_width * 4;
-
-                gVideoDesc.dst[y * dst_pitch + (x * 4) + 0] = r;
-                gVideoDesc.dst[y * dst_pitch + (x * 4) + 1] = g;
-                gVideoDesc.dst[y * dst_pitch + (x * 4) + 2] = b;
-                gVideoDesc.dst[y * dst_pitch + (x * 4) + 3] = 255;
+                gVideoDesc.dst[y * dstPitch + (x * 4) + 0] = r;
+                gVideoDesc.dst[y * dstPitch + (x * 4) + 1] = g;
+                gVideoDesc.dst[y * dstPitch + (x * 4) + 2] = b;
+                gVideoDesc.dst[y * dstPitch + (x * 4) + 3] = 255;
 
             }
         }
