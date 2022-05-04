@@ -46,38 +46,29 @@ static struct {
 	void (*retro_set_audio_sample_batch)(retro_audio_sample_batch_t);
 } gCore;
 
-/* description of the current video configuration */
+// Description of the current video configuration.
 static struct {
-    /* set by client, filled by the core video refresh callback */
-    uint8_t*                    dst;
-    /* set by the core */
-    enum retro_pixel_format     format;
-    struct retro_game_geometry  geometry;
+    // Set by client, filled by the core video refresh callback.
+    uint8_t* dst;
+    // Set by the core.
+    enum retro_pixel_format format;
+    struct retro_game_geometry geometry;
 } gVideoDesc;
 
-/* description of the audio channel */
+// Description of the audio configuration.
 static struct {
-    uint16_t*                   dst;
-    size_t                      dstLen;
-    size_t                      dstInd;
-    double                      sampleRate;
+    uint16_t* dst;
+    size_t dstLen;
+    size_t dstInd;
+    double sampleRate;
 } gAudioDesc;
 
-/* clients registered callbacks */
-static void     (*gInputCallback)(input_state_t *);
-
-/* global libretro states */
-static input_state_t gInputState;
-
-static void
-_dump_input_state(input_state_t const* state)
-{
-    printf("input_state@%p={\n", state);
-    for (size_t i = 0; i < RETRO_INTF_INPUT_SIZE; ++i) {
-        printf("[%zu]=%u,", i, state->values[i]);
-    }
-    printf("}\n");
-}
+// Description of the input configuration.
+static struct {
+    input_state_t inputState;
+    // Callback registered by the client.
+    void (*cb)(input_state_t *);
+} gInputDesc;
 
 static void
 _core_cb_log(enum retro_log_level level, char const* fmt, ...)
@@ -147,8 +138,8 @@ _core_cb_environment(unsigned cmd, void* data)
 static void
 _core_cb_input_poll(void)
 {
-    if (gInputCallback) {
-        gInputCallback(&gInputState);
+    if (gInputDesc.cb) {
+        gInputDesc.cb(&gInputDesc.inputState);
     }
 }
 
@@ -162,7 +153,7 @@ _core_cb_input_state(unsigned port, unsigned device, unsigned index,
         return 0;
     }
 
-    return gInputState.values[id];
+    return gInputDesc.inputState.values[id];
 }
 
 static void
@@ -421,7 +412,7 @@ retro_intf_set_audio_buffer(void* dst, size_t len)
 void
 retro_intf_set_input_callback(void (*cb)(input_state_t *))
 {
-    gInputCallback = cb;
+    gInputDesc.cb = cb;
 }
 
 void
