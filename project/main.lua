@@ -8,6 +8,7 @@ VIRTUAL_MOUSE_X_NORM = 0
 VIRTUAL_MOUSE_Y = 0
 VIRTUAL_MOUSE_Y_NORM = 0
 
+-- TODO: probably should not be a global
 function raycast(rayPos, rayDir, planePos, planeDir)
   local dot = rayDir:dot(planeDir)
   if math.abs(dot) < .001 then
@@ -81,6 +82,14 @@ function lovr.load()
     -- initialize retro
     init_retro()
 
+    -- create a backing sound buffer
+    local sample_rate = tonumber(retro.retro_intf_get_audio_sample_rate())
+    screen_bin = lovr.data.newBlob(2 * 64000, 'screen_snd')
+    retro.retro_intf_set_audio_buffer(screen_bin:getPointer(), screen_bin:getSize() / 2)
+    screen_snd = lovr.data.newSound(
+        screen_bin:getSize() / 2, 'i16', 'stereo', sample_rate, 'stream')
+    screen_src = lovr.audio.newSource(screen_snd)
+
     -- create a backing texture for the libretro core video frame
     local video_desc = retro.retro_intf_get_video_desc()
     print('video_desc: ')
@@ -123,6 +132,15 @@ end
 function lovr.update(dt)
     retro.retro_intf_step()
     screen_tex:replacePixels(screen_img)
+
+    -- sound: frames are interleaved {l, r} and contain 2 samples each; so when we drain
+    -- the audio buffer we get the total number of samples that were written, hence why
+    -- we divide by two.
+    local num_samples = tonumber(retro.retro_intf_drain_audio_buffer())
+    local num_frames = num_samples / 2
+    screen_snd:setFrames(screen_bin, num_frames)
+    screen_src:play()
+
 end
 
 function lovr.draw()

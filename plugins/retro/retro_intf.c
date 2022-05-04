@@ -3,8 +3,10 @@
 #include <assert.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,8 +55,16 @@ static struct {
     struct retro_game_geometry  geometry;
 } gVideoDesc;
 
+/* description of the audio channel */
+static struct {
+    uint16_t*                   dst;
+    size_t                      dstLen;
+    size_t                      dstInd;
+    double                      sample_rate;
+} gAudioDesc;
+
 /* clients registered callbacks */
-static void (*gInputCallback)(input_state_t *);
+static void     (*gInputCallback)(input_state_t *);
 
 /* global libretro states */
 static input_state_t gInputState;
@@ -67,12 +77,6 @@ _dump_input_state(input_state_t const* state)
         printf("[%zu]=%u,", i, state->values[i]);
     }
     printf("}\n");
-}
-
-static void
-_core_cb_audio_sample(int16_t left, int16_t right)
-{
-    //TODO.
 }
 
 static void
@@ -89,10 +93,25 @@ _core_cb_log(enum retro_log_level level, char const* fmt, ...)
     printf("[%s] %s", levelstr[level], buffer);
 }
 
+static void
+_core_cb_audio_sample(int16_t left, int16_t right)
+{
+}
+
 static size_t
 _core_cb_audio_sample_batch(int16_t const* data, size_t frame)
 {
-    return frame;
+    size_t ncopies = 0;
+
+    for (size_t i = 0; i < frame; ++i) {
+        if ((gAudioDesc.dstInd + 2) >= gAudioDesc.dstLen)
+            break;
+        gAudioDesc.dst[gAudioDesc.dstInd++] = *data++;
+        gAudioDesc.dst[gAudioDesc.dstInd++] = *data++;
+        ncopies++;
+    }
+
+    return ncopies;
 }
 
 static bool
@@ -326,13 +345,11 @@ retro_intf_init(char const* corePath, char const* gamePath)
     printf("%s: core initialized, core:%s game:%s\n",
             __func__, corePath, gamePath);
 
-    // Determine the initial video configuration.
+    // Determine the initial a/v configuration.
     struct retro_system_av_info avInfo = {0};
     gCore.retro_get_system_av_info(&avInfo);
     gVideoDesc.geometry = avInfo.geometry;
-    //printf("%s: w=%u h=%u mw=%u mh=%u\n", __func__,
-    //        gVideoDesc.geometry.base_width, gVideoDesc.geometry.base_height,
-    //        gVideoDesc.geometry.max_width, gVideoDesc.geometry.max_height);
+    gAudioDesc.sample_rate = avInfo.timing.sample_rate;
 
     success = true;
 out:
@@ -371,9 +388,6 @@ retro_intf_get_video_desc(void)
         .maxFrameH = gVideoDesc.geometry.max_height,
     };
 
-    //printf("%s: w=%u h=%u mw=%u mh=%u\n",
-    //        __func__, desc.curFrameW, desc.curFrameH, desc.maxFrameW, desc.maxFrameH);
-
     return desc;
 }
 
@@ -386,6 +400,22 @@ retro_intf_set_controller(int port, int type, int id)
     // play well with ffi so let's do the macro conversion here. Clients will just
     // pass the type and id.
     gCore.retro_set_controller_port_device(0, RETRO_DEVICE_SUBCLASS(type, id));
+}
+
+size_t
+retro_intf_drain_audio_buffer(void)
+{
+    size_t nframes = gAudioDesc.dstInd;
+    gAudioDesc.dstInd = 0;
+    return nframes;
+}
+
+void
+retro_intf_set_audio_buffer(void* dst, size_t len)
+{
+    gAudioDesc.dst = dst;
+    gAudioDesc.dstLen = len;
+    printf("%s: set audio buffer dst=%p len=%zu\n", __func__, dst, len);
 }
 
 void
@@ -407,4 +437,10 @@ retro_intf_step(void)
     if (!gCore.initialized)
         return;
     gCore.retro_run();
+}
+
+double
+retro_intf_get_audio_sample_rate(void)
+{
+    return gAudioDesc.sample_rate;
 }
