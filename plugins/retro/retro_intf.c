@@ -383,7 +383,7 @@ retro_intf_get_video_desc(void)
 }
 
 void
-retro_intf_set_controller(int port, int type, int id)
+retro_intf_set_input(int port, int type, int id)
 {
     if (port != 0) {
         printf("%s: ignored unsupported input port %d\n", __func__, port);

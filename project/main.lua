@@ -35,7 +35,7 @@ function init_retro()
     retro_success = retro.retro_intf_init(core_path, game_path)
     assert(retro_success)
 
-    retro.retro_intf_set_controller(0, retro.DEVICE_LIGHTGUN, 0)
+    retro.retro_intf_set_input(0, retro.DEVICE_LIGHTGUN, 0)
 
     retro.retro_intf_set_input_callback(function (input_state)
         if USE_KEYBOARD then
