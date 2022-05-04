@@ -45,8 +45,8 @@ ffi.cdef[[
     retro_intf_video_desc_t retro_intf_get_video_desc(void);
     void retro_intf_set_input(int port, int type, int id);
     void retro_intf_set_input_callback(void (*cb)(input_state_t *));
-    void retro_intf_set_audio_buffer(void* dst, size_t len);
-    void retro_intf_set_video_buffer(void* dst);
+    void retro_intf_set_audio_buffer(int16_t* dst, size_t len);
+    void retro_intf_set_video_buffer(uint8_t* dst);
     void retro_intf_step(void);
 ]]
 

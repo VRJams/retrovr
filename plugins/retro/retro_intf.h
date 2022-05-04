@@ -62,14 +62,14 @@ void retro_intf_set_input(int port, int type, int id);
 ///
 /// @param len
 /// Length of |buf|.
-void retro_intf_set_audio_buffer(void* dst, size_t len);
+void retro_intf_set_audio_buffer(int16_t* dst, size_t len);
 
 /// Set the video buffer.
 ///
 /// @param dst
 /// RGBA8 buffer, must be able to store a frame of max_width/max_height as obtained by
 /// retro_intf_get_video_desc().
-void retro_intf_set_video_buffer(void* dst);
+void retro_intf_set_video_buffer(uint8_t* dst);
 
 /// Set the callback for inputs polling.
 ///

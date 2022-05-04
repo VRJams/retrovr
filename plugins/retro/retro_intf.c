@@ -57,7 +57,7 @@ static struct {
 
 // Description of the audio configuration.
 static struct {
-    uint16_t* dst;
+    int16_t* dst;
     size_t dstLen;
     size_t dstInd;
     double sampleRate;
@@ -402,7 +402,7 @@ retro_intf_drain_audio_buffer(void)
 }
 
 void
-retro_intf_set_audio_buffer(void* dst, size_t len)
+retro_intf_set_audio_buffer(int16_t* dst, size_t len)
 {
     gAudioDesc.dst = dst;
     gAudioDesc.dstLen = len;
@@ -416,7 +416,7 @@ retro_intf_set_input_callback(void (*cb)(input_state_t *))
 }
 
 void
-retro_intf_set_video_buffer(void* dst)
+retro_intf_set_video_buffer(uint8_t* dst)
 {
     gVideoDesc.dst = dst;
     printf("%s: set video buffer dst=%p\n", __func__, dst);
