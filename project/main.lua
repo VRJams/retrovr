@@ -8,7 +8,6 @@ VIRTUAL_MOUSE_X_NORM = 0
 VIRTUAL_MOUSE_Y = 0
 VIRTUAL_MOUSE_Y_NORM = 0
 
--- TODO: probably should not be a global
 function raycast(rayPos, rayDir, planePos, planeDir)
   local dot = rayDir:dot(planeDir)
   if math.abs(dot) < .001 then
@@ -74,6 +73,10 @@ function init_retro()
                     'right', 'b') or 0
             input_state.values[retro.LIGHTGUN_AUX_C] = lovr.headset.isDown(
                     'left', 'x') or 0
+            input_state.values[retro.LIGHTGUN_SCREEN_X] =
+                 math.floor(VIRTUAL_MOUSE_X_NORM * 0x8000)
+            input_state.values[retro.LIGHTGUN_SCREEN_Y] =
+                 math.floor(VIRTUAL_MOUSE_Y_NORM * 0x8000)
         end
     end)
 end
@@ -129,7 +132,32 @@ function lovr.load()
 
 end
 
+local tips = {}
+
 function lovr.update(dt)
+    for i, hand in ipairs(lovr.headset.getHands()) do
+        tips[hand] = tips[hand] or lovr.math.newVec3()
+
+        local rayPosition = vec3(lovr.headset.getPosition(hand))
+        local rayDirection = vec3(quat(lovr.headset.getOrientation(hand)):direction())
+        rayDirection = mat4():rotate(-math.pi/4, 1, 0, 0):mul(rayDirection)
+
+        -- Call the raycast helper function to get the intersection point of the ray and the button plane
+        local hit = raycast(rayPosition, rayDirection, vec3(0, 1, -4), vec3(0, 0, 1))
+        local inside = false
+        local bx, by, bw, bh = 0, 1, 3/2, 2/2
+        if hit then
+            inside = (hit.x > bx - bw) and (hit.x < bx + bw) and (hit.y > by - bh) and (hit.y < by + bh)
+        end
+
+        if inside then
+            VIRTUAL_MOUSE_X_NORM = (hit.x - bx) / bw
+            VIRTUAL_MOUSE_Y_NORM = -(hit.y - by) / bh
+        end
+
+        tips[hand]:set(rayPosition + rayDirection * 50)
+    end
+
     retro.retro_intf_step()
     screen_tex:replacePixels(screen_img)
 
@@ -161,6 +189,20 @@ function lovr.draw()
         3, 2,                                           -- dimension
         math.pi, 1, 0, 0,                               -- rotation
         0, 0, tex_w, tex_h)                             -- texture
+
+
+    for hand, tip in pairs(tips) do
+        local position = vec3(lovr.headset.getPosition(hand))
+        -- draw hand position
+        lovr.graphics.setColor(1, 1, 1)
+        lovr.graphics.sphere(position, .01)
+        -- draw hand direction
+        lovr.graphics.line(position, tip)
+        lovr.graphics.setColor(1, 1, 1)
+    end
+
+    lovr.graphics.print(VIRTUAL_MOUSE_X_NORM or 0, 0, 4, -4, 0.5)
+    lovr.graphics.print(VIRTUAL_MOUSE_Y_NORM or 0, 0, 3, -4, 0.5)
 end
 
 function lovr.keypressed(key, scancode, w)
