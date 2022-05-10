@@ -4,9 +4,15 @@ retro = require('retro')
 USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
 KEYBOARD_KEYPRESSED = {}
 VIRTUAL_MOUSE_X = 0
-VIRTUAL_MOUSE_X_NORM = 0
 VIRTUAL_MOUSE_Y = 0
-VIRTUAL_MOUSE_Y_NORM = 0
+
+function clamp(val, lower, upper)
+    assert(val and lower and upper, "not very useful error message here")
+    if lower > upper then
+        lower, upper = upper, lower
+    end
+    return math.max(lower, math.min(upper, val))
+end
 
 function raycast(rayPos, rayDir, planePos, planeDir)
   local dot = rayDir:dot(planeDir)
@@ -39,45 +45,24 @@ function init_retro()
 
     retro.retro_intf_set_input_callback(function (input_state)
         if USE_KEYBOARD then
-            input_state.values[retro.LIGHTGUN_TRIGGER] =
-                    KEYBOARD_KEYPRESSED['space'] or 0
-            input_state.values[retro.LIGHTGUN_RELOAD] =
-                    KEYBOARD_KEYPRESSED['tab'] or 0
-            input_state.values[retro.LIGHTGUN_SELECT] =
-                    KEYBOARD_KEYPRESSED['z'] or 0
-            input_state.values[retro.LIGHTGUN_START] =
-                    KEYBOARD_KEYPRESSED['x'] or 0
-            input_state.values[retro.LIGHTGUN_AUX_A] =
-                    KEYBOARD_KEYPRESSED['1'] or 0
-            input_state.values[retro.LIGHTGUN_AUX_B] =
-                    KEYBOARD_KEYPRESSED['2'] or 0
-            input_state.values[retro.LIGHTGUN_AUX_C] =
-                    KEYBOARD_KEYPRESSED['3'] or 0
-            -- TODO: this is not so simple, we must adjust the coordinate into screen space.
-            input_state.values[retro.LIGHTGUN_SCREEN_X] =
-                 0x8000 * (2 * VIRTUAL_MOUSE_X_NORM - 1);
-            input_state.values[retro.LIGHTGUN_SCREEN_Y] =
-                 0x8000 * (2 * VIRTUAL_MOUSE_Y_NORM - 1);
+            input_state.values[retro.LIGHTGUN_TRIGGER] = KEYBOARD_KEYPRESSED['space'] or 0
+            input_state.values[retro.LIGHTGUN_RELOAD] = KEYBOARD_KEYPRESSED['tab'] or 0
+            input_state.values[retro.LIGHTGUN_SELECT] = KEYBOARD_KEYPRESSED['z'] or 0
+            input_state.values[retro.LIGHTGUN_START] = KEYBOARD_KEYPRESSED['x'] or 0
+            input_state.values[retro.LIGHTGUN_AUX_A] = KEYBOARD_KEYPRESSED['1'] or 0
+            input_state.values[retro.LIGHTGUN_AUX_B] = KEYBOARD_KEYPRESSED['2'] or 0
+            input_state.values[retro.LIGHTGUN_AUX_C] = KEYBOARD_KEYPRESSED['3'] or 0
         else
-            input_state.values[retro.LIGHTGUN_TRIGGER] = lovr.headset.isDown(
-                    'right', 'trigger') or 0
-            input_state.values[retro.LIGHTGUN_RELOAD] = lovr.headset.isDown(
-                    'left', 'trigger') or 0
-            input_state.values[retro.LIGHTGUN_SELECT] = lovr.headset.isDown(
-                    'left', 'thumbstick') or 0
-            input_state.values[retro.LIGHTGUN_START] = lovr.headset.isDown(
-                    'right', 'thumbstick') or 0
-            input_state.values[retro.LIGHTGUN_AUX_A] = lovr.headset.isDown(
-                    'right', 'a') or 0
-            input_state.values[retro.LIGHTGUN_AUX_B] = lovr.headset.isDown(
-                    'right', 'b') or 0
-            input_state.values[retro.LIGHTGUN_AUX_C] = lovr.headset.isDown(
-                    'left', 'x') or 0
-            input_state.values[retro.LIGHTGUN_SCREEN_X] =
-                 math.floor(VIRTUAL_MOUSE_X_NORM * 0x8000)
-            input_state.values[retro.LIGHTGUN_SCREEN_Y] =
-                 math.floor(VIRTUAL_MOUSE_Y_NORM * 0x8000)
+            input_state.values[retro.LIGHTGUN_TRIGGER] = lovr.headset.isDown('right', 'trigger') or 0
+            input_state.values[retro.LIGHTGUN_RELOAD] = lovr.headset.isDown('left', 'trigger') or 0
+            input_state.values[retro.LIGHTGUN_SELECT] = lovr.headset.isDown('left', 'thumbstick') or 0
+            input_state.values[retro.LIGHTGUN_START] = lovr.headset.isDown('right', 'thumbstick') or 0
+            input_state.values[retro.LIGHTGUN_AUX_A] = lovr.headset.isDown('right', 'a') or 0
+            input_state.values[retro.LIGHTGUN_AUX_B] = lovr.headset.isDown('right', 'b') or 0
+            input_state.values[retro.LIGHTGUN_AUX_C] = lovr.headset.isDown('left', 'x') or 0
         end
+        input_state.values[retro.LIGHTGUN_SCREEN_X] = math.floor(VIRTUAL_MOUSE_X * 0x8000)
+        input_state.values[retro.LIGHTGUN_SCREEN_Y] = math.floor(VIRTUAL_MOUSE_Y * 0x8000)
     end)
 end
 
@@ -151,8 +136,8 @@ function lovr.update(dt)
         end
 
         if inside then
-            VIRTUAL_MOUSE_X_NORM = (hit.x - bx) / bw
-            VIRTUAL_MOUSE_Y_NORM = -(hit.y - by) / bh
+            VIRTUAL_MOUSE_X = (hit.x - bx) / bw
+            VIRTUAL_MOUSE_Y = -(hit.y - by) / bh
         end
 
         tips[hand]:set(rayPosition + rayDirection * 50)
@@ -200,9 +185,6 @@ function lovr.draw()
         lovr.graphics.line(position, position + 0.2 * tip:normalize())
         lovr.graphics.setColor(1, 1, 1)
     end
-
-    lovr.graphics.print(VIRTUAL_MOUSE_X_NORM or 0, 0, 4, -4, 0.5)
-    lovr.graphics.print(VIRTUAL_MOUSE_Y_NORM or 0, 0, 3, -4, 0.5)
 end
 
 function lovr.keypressed(key, scancode, w)
@@ -211,20 +193,16 @@ function lovr.keypressed(key, scancode, w)
 
         -- virtual mouse
         if key == 'i' then
-            VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y - 5;
+            VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y - 0.1;
         elseif key == 'k' then
-            VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y + 5;
+            VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y + 0.1;
         elseif key == 'j' then
-            VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X - 5;
+            VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X - 0.1;
         elseif key == 'l' then
-            VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X + 5;
+            VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X + 0.1;
         end
-        -- TODO: technically, we could work with only normalized mouse position.
-        local video_desc = retro.retro_intf_get_video_desc()
-        VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X % video_desc.curFrameW
-        VIRTUAL_MOUSE_X_NORM = VIRTUAL_MOUSE_X / video_desc.curFrameW
-        VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X % video_desc.curFrameH
-        VIRTUAL_MOUSE_Y_NORM = VIRTUAL_MOUSE_Y / video_desc.curFrameH
+        VIRTUAL_MOUSE_X = clamp(VIRTUAL_MOUSE_X, -1.0, 1.0)
+        VIRTUAL_MOUSE_Y = clamp(VIRTUAL_MOUSE_Y, -1.0, 1.0)
     end
 end
 
