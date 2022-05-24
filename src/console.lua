@@ -31,19 +31,30 @@ function console.newConsole(kind, position)
     obj.renderTexAlbedo = lovr.graphics.newTexture(assets['texAlbedo'])
 
     -- TODO: Use a ShaderBuilder.
-    obj.renderShader = lovr.graphics.newShader('unlit', {
+    obj.renderShader = lovr.graphics.newShader('standard', {
+    --obj.renderShader = lovr.graphics.newShader([[
+    --    vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
+    --        return projection * transform * vertex;
+    --    }
+    --]], [[
+    --    vec4 color(vec4 color, sampler2D image, vec2 uv) {
+    --        vec4 albedo = texture(lovrDiffuseTexture, lovrTexCoord);
+    --        return vec4(albedo);
+    --    }
+    --]], {
         flags = {}
     })
+
+    local m = obj.renderModel:getMaterial(1)
+    m:setTexture('diffuse', obj.renderTexAlbedo)
 
     return obj
 end
 
 function Console:draw()
     lovr.graphics.setShader(self.renderShader)
-    self.renderShader:send('lovrDiffuseTexture', self.renderTexAlbedo)
-    self.renderShader:send('lovrLightDirection', { 1, 0, -1 })
+    self.renderShader:send('lovrLightDirection', { -1, -1, 1 })
     self.renderShader:send('lovrLightColor', { 1, 1, 1, 1 })
-    self.renderShader:send('lovrDiffuseColor', { 1, 1, 1, 1 })
     self.renderModel:draw(self.position)
     lovr.graphics.setShader()
 end
