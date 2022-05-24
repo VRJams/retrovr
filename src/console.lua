@@ -12,6 +12,9 @@ local CONSOLE_ASSETS = {
     psx = {
         model = 'assets/MODEL/PLAYSTATION.gltf',
         texAlbedo = 'assets/TEXTURE/PLAYSTATION_URP_AlbedoTransparency.png',
+        texEmissive = 'assets/TEXTURE/PLAYSTATION_URP_Emission.png',
+        texNormal = 'assets/TEXTURE/PLAYSTATION_URP_Normal.png',
+        texMetalness = 'assets/TEXTURE/PLAYSTATION_URP_MetallicSmoothness.png',
     },
 }
 
@@ -29,24 +32,20 @@ function console.newConsole(kind, position)
     obj.position = position
     obj.renderModel = lovr.graphics.newModel(assets['model'])
     obj.renderTexAlbedo = lovr.graphics.newTexture(assets['texAlbedo'])
+    obj.renderTexEmissive = lovr.graphics.newTexture(assets['texEmissive'])
+    obj.renderTexNormal = lovr.graphics.newTexture(assets['texNormal'])
+    obj.renderTexMetalness = lovr.graphics.newTexture(assets['texMetalness'])
 
-    -- TODO: Use a ShaderBuilder.
+    -- TODO: find out how to apply rectangular area lights; modify the engine?
     obj.renderShader = lovr.graphics.newShader('standard', {
-    --obj.renderShader = lovr.graphics.newShader([[
-    --    vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
-    --        return projection * transform * vertex;
-    --    }
-    --]], [[
-    --    vec4 color(vec4 color, sampler2D image, vec2 uv) {
-    --        vec4 albedo = texture(lovrDiffuseTexture, lovrTexCoord);
-    --        return vec4(albedo);
-    --    }
-    --]], {
-        flags = {}
+        flags = { normalMap=true, emissive=true, }
     })
 
     local m = obj.renderModel:getMaterial(1)
     m:setTexture('diffuse', obj.renderTexAlbedo)
+    m:setTexture('emissive', obj.renderTexEmissive)
+    m:setTexture('normal', obj.renderTexNormal)
+    m:setTexture('metalness', obj.renderTexMetalness)
 
     return obj
 end
