@@ -1,32 +1,11 @@
 retro = require('retro')
+utils = require('utils')
 
 -- TODO: dynamically select between keyboard and controller based on the OS
 USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
 KEYBOARD_KEYPRESSED = {}
 VIRTUAL_MOUSE_X = 0
 VIRTUAL_MOUSE_Y = 0
-
-function clamp(val, lower, upper)
-    assert(val and lower and upper, "not very useful error message here")
-    if lower > upper then
-        lower, upper = upper, lower
-    end
-    return math.max(lower, math.min(upper, val))
-end
-
-function raycast(rayPos, rayDir, planePos, planeDir)
-  local dot = rayDir:dot(planeDir)
-  if math.abs(dot) < .001 then
-    return nil
-  else
-    local distance = (planePos - rayPos):dot(planeDir) / dot
-    if distance > 0 then
-      return rayPos + rayDir * distance
-    else
-      return nil
-    end
-  end
-end
 
 function init_retro()
     local main_dir = lovr.filesystem.getWorkingDirectory()
@@ -128,7 +107,8 @@ function lovr.update(dt)
         rayDirection = mat4():rotate(-math.pi/4, 1, 0, 0):mul(rayDirection)
 
         -- Call the raycast helper function to get the intersection point of the ray and the button plane
-        local hit = raycast(rayPosition, rayDirection, vec3(0, 1, -4), vec3(0, 0, 1))
+        local hit = utils.raycast(rayPosition, rayDirection,
+            vec3(0, 1, -4), vec3(0, 0, 1))
         local inside = false
         local bx, by, bw, bh = 0, 1, 3/2, 2/2
         if hit then
@@ -201,8 +181,8 @@ function lovr.keypressed(key, scancode, w)
         elseif key == 'l' then
             VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X + 0.1;
         end
-        VIRTUAL_MOUSE_X = clamp(VIRTUAL_MOUSE_X, -1.0, 1.0)
-        VIRTUAL_MOUSE_Y = clamp(VIRTUAL_MOUSE_Y, -1.0, 1.0)
+        VIRTUAL_MOUSE_X = utils.clamp(VIRTUAL_MOUSE_X, -1.0, 1.0)
+        VIRTUAL_MOUSE_Y = utils.clamp(VIRTUAL_MOUSE_Y, -1.0, 1.0)
     end
 end
 
