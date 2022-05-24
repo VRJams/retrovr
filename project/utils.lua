@@ -8,7 +8,6 @@ function utils.clamp(val, lower, upper)
     return math.max(lower, math.min(upper, val))
 end
 
-
 function utils.dump(o)
    if type(o) == 'table' then
       local s = '{ '
