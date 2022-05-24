@@ -1,5 +1,9 @@
+console = require('console')
 retro = require('retro')
 utils = require('utils')
+
+-- TODO: remove this.
+gConsole = console.newConsole('psx', lovr.math.newVec3(0, 1, 0))
 
 -- TODO: dynamically select between keyboard and controller based on the OS
 USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
@@ -165,6 +169,8 @@ function lovr.draw()
         lovr.graphics.line(position, position + 0.2 * tip:normalize())
         lovr.graphics.setColor(1, 1, 1)
     end
+
+    gConsole:draw()
 end
 
 function lovr.keypressed(key, scancode, w)

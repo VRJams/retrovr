@@ -10,17 +10,8 @@ Console.__index = Console
 local CONSOLE_ASSETS = {
     -- Playstation (PSX)
     psx = {
-        model = 'assets/PLAYSTATION.gltf',
-        texAlbedo = 'assets/PLAYSTATION_URP_AlbedoTransparency.png',
-        texNormal = 'assets/PLAYSTATION_URP_Normal.png',
-        texEmission = 'assets/PLAYSTATION_URP_Emission.png',
-    },
-    -- Nintendo Wii
-    wii = {
-        model = 'assets/WII.gltf',
-        texAlbedo = 'assets/WII_URP_AlbedoTransparency.png',
-        texNormal = 'assets/WII_URP_Normal.png',
-        texEmission = 'assets/WII_URP_Emission.png',
+        model = 'assets/MODEL/PLAYSTATION.gltf',
+        texAlbedo = 'assets/TEXTURE/PLAYSTATION_URP_AlbedoTransparency.png',
     },
 }
 
@@ -38,12 +29,10 @@ function console.newConsole(kind, position)
     obj.position = position
     obj.renderModel = lovr.graphics.newModel(assets['model'])
     obj.renderTexAlbedo = lovr.graphics.newTexture(assets['texAlbedo'])
-    obj.renderTexNormal = lovr.graphics.newTexture(assets['texNormal'])
-    obj.renderTexEmission = lovr.graphics.newTexture(assets['texEmission'])
 
     -- TODO: Use a ShaderBuilder.
-    obj.renderShader = lovr.graphics.newShader('standard', {
-        flags = { normalMap = true, emissive=true }
+    obj.renderShader = lovr.graphics.newShader('unlit', {
+        flags = {}
     })
 
     return obj
@@ -52,7 +41,6 @@ end
 function Console:draw()
     lovr.graphics.setShader(self.renderShader)
     self.renderShader:send('lovrDiffuseTexture', self.renderTexAlbedo)
-    self.renderShader:send('lovrNormalTexture', self.renderTexNormal)
     self.renderShader:send('lovrLightDirection', { 1, 0, -1 })
     self.renderShader:send('lovrLightColor', { 1, 1, 1, 1 })
     self.renderShader:send('lovrDiffuseColor', { 1, 1, 1, 1 })
