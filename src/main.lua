@@ -8,7 +8,6 @@ gConsole = console.newConsole('psx', lovr.math.newVec3(0, 1, 0))
 gMonitor = monitor.newMonitor(lovr.math.newVec3(0, 1, -4),
     lovr.math.newVec2(3, 2), math.pi, lovr.math.newVec3(1, 0, 0))
 
--- TODO: dynamically select between keyboard and controller based on the OS
 USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
 KEYBOARD_KEYPRESSED = {}
 VIRTUAL_MOUSE_X = 0
@@ -39,13 +38,20 @@ function init_retro()
             input_state.values[retro.LIGHTGUN_AUX_B] = KEYBOARD_KEYPRESSED['2'] or 0
             input_state.values[retro.LIGHTGUN_AUX_C] = KEYBOARD_KEYPRESSED['3'] or 0
         else
-            input_state.values[retro.LIGHTGUN_TRIGGER] = lovr.headset.isDown('right', 'trigger') or 0
-            input_state.values[retro.LIGHTGUN_RELOAD] = lovr.headset.isDown('left', 'trigger') or 0
-            input_state.values[retro.LIGHTGUN_SELECT] = lovr.headset.isDown('left', 'thumbstick') or 0
-            input_state.values[retro.LIGHTGUN_START] = lovr.headset.isDown('right', 'thumbstick') or 0
-            input_state.values[retro.LIGHTGUN_AUX_A] = lovr.headset.isDown('right', 'a') or 0
-            input_state.values[retro.LIGHTGUN_AUX_B] = lovr.headset.isDown('right', 'b') or 0
-            input_state.values[retro.LIGHTGUN_AUX_C] = lovr.headset.isDown('left', 'x') or 0
+            input_state.values[retro.LIGHTGUN_TRIGGER] =
+                lovr.headset.isDown('right', 'trigger') or 0
+            input_state.values[retro.LIGHTGUN_RELOAD] =
+                lovr.headset.isDown('left', 'trigger') or 0
+            input_state.values[retro.LIGHTGUN_SELECT] =
+                lovr.headset.isDown('left', 'thumbstick') or 0
+            input_state.values[retro.LIGHTGUN_START] =
+                lovr.headset.isDown('right', 'thumbstick') or 0
+            input_state.values[retro.LIGHTGUN_AUX_A] =
+                lovr.headset.isDown('right', 'a') or 0
+            input_state.values[retro.LIGHTGUN_AUX_B] =
+                lovr.headset.isDown('right', 'b') or 0
+            input_state.values[retro.LIGHTGUN_AUX_C] =
+                lovr.headset.isDown('left', 'x') or 0
         end
         input_state.values[retro.LIGHTGUN_SCREEN_X] = math.floor(VIRTUAL_MOUSE_X * 0x8000)
         input_state.values[retro.LIGHTGUN_SCREEN_Y] = math.floor(VIRTUAL_MOUSE_Y * 0x8000)
@@ -161,13 +167,9 @@ function lovr.draw()
 end
 
 function lovr.keypressed(key, scancode, w)
-    if USE_KEYBOARD then
-        KEYBOARD_KEYPRESSED[key] = 1
-    end
+    KEYBOARD_KEYPRESSED[key] = 1
 end
 
 function lovr.keyreleased(key, scancode)
-    if USE_KEYBOARD then
-        KEYBOARD_KEYPRESSED[key] = 0
-    end
+    KEYBOARD_KEYPRESSED[key] = 0
 end
