@@ -135,7 +135,6 @@ function lovr.update(dt)
     local num_frames = num_samples / 2
     screen_snd:setFrames(screen_bin, num_frames)
     screen_src:play()
-
 end
 
 function lovr.draw()

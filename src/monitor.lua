@@ -14,9 +14,11 @@ function monitor.newMonitor(center, dimension, rotAng, rotVec)
     obj.renderMaterial = lovr.graphics.newMaterial()
 
     -- TODO: calculate plane axes
-    obj.vecNormal = lovr.math.newVec3(0, 0, 1)
-    obj.vecRight = lovr.math.newVec3(1, 0, 0)
-    obj.vecUp = lovr.math.newVec3(0, 1, 0)
+    local m = lovr.math.newMat4():rotate(rotAng, rotVec.x, rotVec.y, rotVec.z)
+    obj.vecRight = m:mul(lovr.math.newVec3(1, 0, 0))
+    obj.vecUp = m:mul(lovr.math.newVec3(0, -1, 0))
+    obj.vecNormal = obj.vecRight:cross(obj.vecUp):normalize()
+    obj.vecRight = m:mul(lovr.math.newVec3(1, 0, 0))
 
     return obj
 end
