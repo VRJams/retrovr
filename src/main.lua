@@ -163,19 +163,6 @@ end
 function lovr.keypressed(key, scancode, w)
     if USE_KEYBOARD then
         KEYBOARD_KEYPRESSED[key] = 1
-
-        -- virtual mouse
-        if key == 'i' then
-            VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y - 0.1;
-        elseif key == 'k' then
-            VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y + 0.1;
-        elseif key == 'j' then
-            VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X - 0.1;
-        elseif key == 'l' then
-            VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X + 0.1;
-        end
-        VIRTUAL_MOUSE_X = utils.clamp(VIRTUAL_MOUSE_X, -1.0, 1.0)
-        VIRTUAL_MOUSE_Y = utils.clamp(VIRTUAL_MOUSE_Y, -1.0, 1.0)
     end
 end
 
