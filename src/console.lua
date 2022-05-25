@@ -42,6 +42,7 @@ function console.newConsole(kind, position)
     })
 
     local m = obj.renderModel:getMaterial(1)
+    m:setColor('emissive', 0, 0.5, 0, 1)
     m:setTexture('diffuse', obj.renderTexAlbedo)
     m:setTexture('emissive', obj.renderTexEmissive)
     m:setTexture('normal', obj.renderTexNormal)
