@@ -18,6 +18,12 @@ local CONSOLE_ASSETS = {
     },
 }
 
+local CONSOLE_ATTRIBUTES = {
+    psx = {
+        emissiveColor = lovr.math.newVec4(0, 1, 0, 1),
+    },
+}
+
 -- Creates a new Console.
 function console.newConsole(kind, position)
     if not CONSOLE_ASSETS[kind] then
@@ -27,7 +33,9 @@ function console.newConsole(kind, position)
     local obj = {}
     setmetatable(obj, Console)
 
-    local assets = CONSOLE_ASSETS[kind]
+    local assets = CONSOLE_ASSETS[kind] or nil
+    local attributes = CONSOLE_ATTRIBUTES[kind] or nil
+
     obj.kind = kind
     obj.position = position
     obj.renderModel = lovr.graphics.newModel(assets['model'])
@@ -42,7 +50,11 @@ function console.newConsole(kind, position)
     })
 
     local m = obj.renderModel:getMaterial(1)
-    m:setColor('emissive', 0, 0.5, 0, 1)
+    if attributes and attributes.emissiveColor then
+        m:setColor('emissive',
+            attributes.emissiveColor.r, attributes.emissiveColor.g,
+            attributes.emissiveColor.b, attributes.emissiveColor.a)
+    end
     m:setTexture('diffuse', obj.renderTexAlbedo)
     m:setTexture('emissive', obj.renderTexEmissive)
     m:setTexture('normal', obj.renderTexNormal)
