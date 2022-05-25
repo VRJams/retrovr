@@ -1,9 +1,12 @@
 console = require('console')
+monitor = require('monitor')
 retro = require('retro')
 utils = require('utils')
 
 -- TODO: remove this.
 gConsole = console.newConsole('psx', lovr.math.newVec3(0, 1, 0))
+gMonitor = monitor.newMonitor(lovr.math.newVec3(0, 1, -4),
+    lovr.math.newVec2(3, 2), math.pi, lovr.math.newVec3(1, 0, 0))
 
 -- TODO: dynamically select between keyboard and controller based on the OS
 USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
@@ -73,7 +76,6 @@ function lovr.load()
     retro.retro_intf_set_video_buffer(screen_img:getBlob():getPointer())
     -- create a material that will be used to retro-project the core video frame
     screen_tex = lovr.graphics.newTexture(screen_img)
-    screen_mat = lovr.graphics.newMaterial(screen_tex)
 
     shader = lovr.graphics.newShader([[
         vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
@@ -96,8 +98,6 @@ function lovr.load()
             return vec4(vec3(value), alpha);
         }
     ]], { flags = { highp = true } })
-
-
 end
 
 local tips = {}
@@ -110,18 +110,10 @@ function lovr.update(dt)
         local rayDirection = vec3(quat(lovr.headset.getOrientation(hand)):direction())
         rayDirection = mat4():rotate(-math.pi/4, 1, 0, 0):mul(rayDirection)
 
-        -- Call the raycast helper function to get the intersection point of the ray and the button plane
-        local hit = utils.raycast(rayPosition, rayDirection,
-            vec3(0, 1, -4), vec3(0, 0, 1))
-        local inside = false
-        local bx, by, bw, bh = 0, 1, 3/2, 2/2
+        local hit = gMonitor:intersect(rayPosition, rayDirection)
         if hit then
-            inside = (hit.x > bx - bw) and (hit.x < bx + bw) and (hit.y > by - bh) and (hit.y < by + bh)
-        end
-
-        if inside then
-            VIRTUAL_MOUSE_X = (hit.x - bx) / bw
-            VIRTUAL_MOUSE_Y = -(hit.y - by) / bh
+            VIRTUAL_MOUSE_X = hit.x
+            VIRTUAL_MOUSE_Y = hit.y
         end
 
         tips[hand]:set(rayPosition + rayDirection * 50)
@@ -153,12 +145,7 @@ function lovr.draw()
     local video_desc = retro.retro_intf_get_video_desc()
     local tex_w = video_desc.curFrameW / video_desc.maxFrameW
     local tex_h = video_desc.curFrameH / video_desc.maxFrameH
-    lovr.graphics.plane(screen_mat,
-        0, 1, -4,                                       -- position
-        3, 2,                                           -- dimension
-        math.pi, 1, 0, 0,                               -- rotation
-        0, 0, tex_w, tex_h)                             -- texture
-
+    gMonitor:draw(screen_tex, tex_w, tex_h)
 
     for hand, tip in pairs(tips) do
         local position = vec3(lovr.headset.getPosition(hand))
