@@ -2,6 +2,3 @@
 	path = deps/lovr
 	url = git@github.com:sgosselin/lovr.git
 	branch = retrovr/main
-[submodule "deps/retrovr-assets"]
-	path = deps/retrovr-assets
-	url = git@github.com:sgosselin/retrovr-assets.git
