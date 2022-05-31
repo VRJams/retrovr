@@ -1,10 +1,10 @@
-display = require('display')
 retro = require('retro')
 utils = require('utils')
+display = require('display')
+print(utils.dump(display))
 
 -- TODO: remove this.
-gDisplay = display.newDisplay(lovr.math.newVec3(0, 1, -4),
-    lovr.math.newVec2(3, 2), math.pi, lovr.math.newVec3(1, 0, 0))
+gDisplay = display.newDisplay(lovr.math.newVec3(0, 0, 0), lovr.math.newVec2(3, 2))
 
 USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
 KEYBOARD_KEYPRESSED = {}
@@ -133,6 +133,8 @@ function lovr.update(dt)
     local num_frames = num_samples / 2
     screen_snd:setFrames(screen_bin, num_frames)
     screen_src:play()
+
+    gDisplay:update(dt)
 end
 
 function lovr.draw()

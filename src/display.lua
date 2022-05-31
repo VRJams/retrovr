@@ -1,29 +1,25 @@
 local display = {}
 
-display = {}
-display.__index = display
+Display = {}
+Display.__index = Display
 
-function display.newdisplay(center, dimension, rotAng, rotVec)
+function display.newDisplay(center, dimension)
     local obj = {}
-    setmetatable(obj, display)
+    setmetatable(obj, Display)
 
     obj.center = center
     obj.dimension = dimension
-    obj.rotAng = rotAng
-    obj.rotVec = rotVec
+    obj.distanceFromViewer = 3
+    obj.orientation = lovr.math.newQuat()
     obj.renderMaterial = lovr.graphics.newMaterial()
 
-    -- TODO: calculate plane axes
-    local m = lovr.math.newMat4():rotate(rotAng, rotVec.x, rotVec.y, rotVec.z)
-    obj.vecRight = m:mul(lovr.math.newVec3(1, 0, 0))
-    obj.vecUp = m:mul(lovr.math.newVec3(0, -1, 0))
-    obj.vecNormal = obj.vecRight:cross(obj.vecUp):normalize()
-    obj.vecRight = m:mul(lovr.math.newVec3(1, 0, 0))
+    -- TODO: must be calculated.
+    obj.vecUp = lovr.math.newVec3(0, 1, 0)
 
     return obj
 end
 
-function display:intersect(rayPos, rayDir)
+function Display:intersect(rayPos, rayDir)
     local hit = utils.raycast(rayPos, rayDir, self.center, self.vecUp)
     if not hit then
         return nil
@@ -41,18 +37,27 @@ function display:intersect(rayPos, rayDir)
     return lovr.math.newVec2((hit.x - bx / bw), -(hit.y - by) / bh)
 end
 
-function display:draw(screenTex, screenTexCoordW, screenTexCoordH)
+function Display:draw(screenTex, screenTexCoordW, screenTexCoordH)
     lovr.graphics.setShader()
-
     self.renderMaterial:setTexture(screenTex)
+
+    angle, ax, ay, az = self.orientation:unpack()
 
     lovr.graphics.plane(self.renderMaterial,
         self.center.x, self.center.y, self.center.z,
         self.dimension.x, self.dimension.y,
-        self.rotAng, self.rotVec.x, self.rotVec.y, self.rotVec.z,
+        angle, ax, ay, az,
         0, 0, screenTexCoordW, screenTexCoordH)
-
     lovr.graphics.setShader()
+end
+
+function Display:update(dt)
+    local headPos = vec3(lovr.headset.getPosition('head'))
+    local headDir = vec3(quat(lovr.headset.getOrientation('head')):direction()):normalize()
+    local targetPos = headPos + headDir * self.distanceFromViewer
+
+    self.center:set(targetPos:lerp(self.center, 0.995))
+    self.orientation:set(lovr.headset.getOrientation('head'))
 end
 
 return display
