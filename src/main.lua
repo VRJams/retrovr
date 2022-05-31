@@ -1,10 +1,8 @@
-console = require('console')
 monitor = require('monitor')
 retro = require('retro')
 utils = require('utils')
 
 -- TODO: remove this.
-gConsole = console.newConsole('psx', lovr.math.newVec3(0, 1, 0))
 gMonitor = monitor.newMonitor(lovr.math.newVec3(0, 1, -4),
     lovr.math.newVec2(3, 2), math.pi, lovr.math.newVec3(1, 0, 0))
 
@@ -161,8 +159,6 @@ function lovr.draw()
         lovr.graphics.line(position, position + 0.2 * tip:normalize())
         lovr.graphics.setColor(1, 1, 1)
     end
-
-    gConsole:draw()
 end
 
 function lovr.keypressed(key, scancode, w)
