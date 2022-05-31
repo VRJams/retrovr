@@ -1,11 +1,11 @@
-local monitor = {}
+local display = {}
 
-Monitor = {}
-Monitor.__index = Monitor
+display = {}
+display.__index = display
 
-function monitor.newMonitor(center, dimension, rotAng, rotVec)
+function display.newdisplay(center, dimension, rotAng, rotVec)
     local obj = {}
-    setmetatable(obj, Monitor)
+    setmetatable(obj, display)
 
     obj.center = center
     obj.dimension = dimension
@@ -23,7 +23,7 @@ function monitor.newMonitor(center, dimension, rotAng, rotVec)
     return obj
 end
 
-function Monitor:intersect(rayPos, rayDir)
+function display:intersect(rayPos, rayDir)
     local hit = utils.raycast(rayPos, rayDir, self.center, self.vecUp)
     if not hit then
         return nil
@@ -41,7 +41,7 @@ function Monitor:intersect(rayPos, rayDir)
     return lovr.math.newVec2((hit.x - bx / bw), -(hit.y - by) / bh)
 end
 
-function Monitor:draw(screenTex, screenTexCoordW, screenTexCoordH)
+function display:draw(screenTex, screenTexCoordW, screenTexCoordH)
     lovr.graphics.setShader()
 
     self.renderMaterial:setTexture(screenTex)
@@ -55,4 +55,4 @@ function Monitor:draw(screenTex, screenTexCoordW, screenTexCoordH)
     lovr.graphics.setShader()
 end
 
-return monitor
+return display

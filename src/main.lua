@@ -1,9 +1,9 @@
-monitor = require('monitor')
+display = require('display')
 retro = require('retro')
 utils = require('utils')
 
 -- TODO: remove this.
-gMonitor = monitor.newMonitor(lovr.math.newVec3(0, 1, -4),
+gDisplay = display.newDisplay(lovr.math.newVec3(0, 1, -4),
     lovr.math.newVec2(3, 2), math.pi, lovr.math.newVec3(1, 0, 0))
 
 USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
@@ -114,7 +114,7 @@ function lovr.update(dt)
         local rayDirection = vec3(quat(lovr.headset.getOrientation(hand)):direction())
         rayDirection = mat4():rotate(-math.pi/4, 1, 0, 0):mul(rayDirection)
 
-        local hit = gMonitor:intersect(rayPosition, rayDirection)
+        local hit = gDisplay:intersect(rayPosition, rayDirection)
         if hit then
             VIRTUAL_MOUSE_X = hit.x
             VIRTUAL_MOUSE_Y = hit.y
@@ -148,7 +148,7 @@ function lovr.draw()
     local video_desc = retro.retro_intf_get_video_desc()
     local tex_w = video_desc.curFrameW / video_desc.maxFrameW
     local tex_h = video_desc.curFrameH / video_desc.maxFrameH
-    gMonitor:draw(screen_tex, tex_w, tex_h)
+    gDisplay:draw(screen_tex, tex_w, tex_h)
 
     for hand, tip in pairs(tips) do
         local position = vec3(lovr.headset.getPosition(hand))
