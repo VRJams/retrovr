@@ -3,6 +3,11 @@ print("BOOT")
 ANDROID = lovr.system.getOS() == 'Android'
 print("ANDROID " .. (ANDROID and 1 or 0))
 
+hits = {}
+
+
+hit_line = {}
+
 retro = require('retro')
 utils = require('utils')
 display = require('display')
@@ -17,13 +22,33 @@ VIRTUAL_MOUSE_X = 0
 VIRTUAL_MOUSE_Y = 0
 
 function init_retro()
-    local main_dir = lovr.filesystem.getWorkingDirectory()
-    if lovr.system.getOS() == 'Android' then
-        main_dir =  '/data/data/org.lovr.app'
+
+
+    local core_dir = lovr.filesystem.getSource() .. "/cores"
+    if ANDROID then
+        core_dir = "/data/data/retrovr.app"
     end
 
-    local core_path = main_dir .. '/pcsx_rearmed_libretro.so'
-    local game_path = main_dir .. '/Point Blank.bin'
+    print('core_dir: ' .. core_dir)
+    
+    print("ITEMS IN core_dir: ")
+    for key, value in pairs(lovr.filesystem.getDirectoryItems(core_dir)) do
+        print(value)
+    end
+
+    local core_path = core_dir .. '/pcsx_rearmed_libretro_x86.so'
+    if ANDROID then
+        core_path = core_dir .. '/pcsx_rearmed_libretro_android.so'
+    end
+
+    local game_dir = lovr.filesystem.getSource()
+    if ANDROID then
+        game_dir = lovr.filesystem.getSaveDirectory()
+    end
+    game_dir = game_dir .. "/games"
+    print("game_dir: ".. game_dir)
+    local game_path = game_dir .. '/Project - Horned Owl (USA).bin'
+    local game_path = game_dir .. '/Point Blank (USA).bin'
 
     retro_success = retro.retro_intf_init(core_path, game_path)
     assert(retro_success)
@@ -120,8 +145,9 @@ function lovr.update(dt)
             tips[hand] = tips[hand] or lovr.math.newVec3()
 
             local rayPosition = vec3(lovr.headset.getPosition(hand))
-            local rayDirection = vec3(quat(lovr.headset.getOrientation(hand)):direction())
-            rayDirection = mat4():rotate(-math.pi/4, 1, 0, 0):mul(rayDirection)
+            local rayDirection = vec3(quat(lovr.headset.getOrientation(hand)):mul(quat(-math.pi / 2, 1, 0, 0)):direction())
+            rayDirection = mat4():mul(rayDirection):normalize()
+            --:rotate(-math.pi / 4, 1, 0, 0)
 
             local hit = gDisplay:intersect(rayPosition, rayDirection)
             if hit then
@@ -131,6 +157,40 @@ function lovr.update(dt)
 
             tips[hand]:set(rayPosition + rayDirection * 50)
         end
+    end
+
+    if lovr.headset.isDown("right", "trigger") then
+        local rayPosition = vec3(lovr.headset.getPosition("right"))
+        local rayDirection = vec3(quat(lovr.headset.getOrientation("right")):mul(quat(-math.pi / 2, 1, 0, 0)):direction())
+        print("RAYDIR")
+        --
+        print(rayDirection:unpack())
+        local hit = utils.raycast(rayPosition, rayDirection, gDisplay.center, gDisplay.orientation:direction())
+
+        if not hit then
+            hit = vec3(0)
+        end
+
+        table.insert(hits, lovr.math.newVec3(hit))
+        print("WORLD HIT")
+        print(hit:unpack())
+        
+        local screen_x = vec3(0, 1, 0):cross(gDisplay.orientation:direction()):normalize()
+        local screen_y = gDisplay.orientation:direction():cross(screen_x):normalize()
+        
+        print("SCREEN COORDS")
+        print(screen_x:unpack())
+        print(screen_y:unpack())
+
+        local repositioned_hit = hit - gDisplay.center
+        local screen_hit = vec2(repositioned_hit:dot(screen_x), repositioned_hit:dot(screen_y))
+
+        print("SCREEN HIT")
+        print(screen_hit:unpack())
+
+        hit_line = { }
+
+
     end
 
     retro.retro_intf_step()
@@ -171,6 +231,11 @@ function lovr.draw()
         lovr.graphics.line(position, position + 0.2 * tip:normalize())
         lovr.graphics.setColor(1, 1, 1)
     end
+
+    for _, hit in ipairs(hits) do
+        lovr.graphics.sphere(hit, .002)
+    end
+    utils.drawAxes()
 end
 
 function lovr.keypressed(key, scancode, w)
