@@ -1,12 +1,17 @@
+print("BOOT")
+
+ANDROID = lovr.system.getOS() == 'Android'
+print("ANDROID " .. (ANDROID and 1 or 0))
+
 retro = require('retro')
 utils = require('utils')
 display = require('display')
 print(utils.dump(display))
 
 -- TODO: remove this.
-gDisplay = display.newDisplay(lovr.math.newVec3(0, 0, 0), lovr.math.newVec2(3, 2))
+gDisplay = display.newDisplay(lovr.math.newVec3(1, 1, 1), lovr.math.newVec2(2, 2))
 
-USE_KEYBOARD = lovr.system.getOS() ~= 'Android'
+
 KEYBOARD_KEYPRESSED = {}
 VIRTUAL_MOUSE_X = 0
 VIRTUAL_MOUSE_Y = 0
@@ -16,7 +21,6 @@ function init_retro()
     if lovr.system.getOS() == 'Android' then
         main_dir =  '/data/data/org.lovr.app'
     end
-    print('main_dir: ' .. main_dir)
 
     local core_path = main_dir .. '/pcsx_rearmed_libretro.so'
     local game_path = main_dir .. '/Point Blank.bin'
@@ -27,7 +31,7 @@ function init_retro()
     retro.retro_intf_set_input(0, retro.DEVICE_LIGHTGUN, 0)
 
     retro.retro_intf_set_input_callback(function (input_state)
-        if USE_KEYBOARD then
+        if not ANDROID then
             input_state.values[retro.LIGHTGUN_TRIGGER] = KEYBOARD_KEYPRESSED['space'] or 0
             input_state.values[retro.LIGHTGUN_RELOAD] = KEYBOARD_KEYPRESSED['tab'] or 0
             input_state.values[retro.LIGHTGUN_SELECT] = KEYBOARD_KEYPRESSED['z'] or 0
@@ -81,6 +85,7 @@ function lovr.load()
     -- create a material that will be used to retro-project the core video frame
     screen_tex = lovr.graphics.newTexture(screen_img)
 
+    -- grid floor shader
     shader = lovr.graphics.newShader([[
         vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
             return projection * transform * vertex;
@@ -107,20 +112,25 @@ end
 local tips = {}
 
 function lovr.update(dt)
-    for i, hand in ipairs(lovr.headset.getHands()) do
-        tips[hand] = tips[hand] or lovr.math.newVec3()
+    if not ANDROID then
+        VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X + 0.1 * (KEYBOARD_KEYPRESSED['l'] or 0) - 0.1 * (KEYBOARD_KEYPRESSED["j"] or 0)
+        VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y + 0.1 * (KEYBOARD_KEYPRESSED["i"] or 0 )- 0.1 * (KEYBOARD_KEYPRESSED["k"] or 0)
+    else    
+        for i, hand in ipairs(lovr.headset.getHands()) do
+            tips[hand] = tips[hand] or lovr.math.newVec3()
 
-        local rayPosition = vec3(lovr.headset.getPosition(hand))
-        local rayDirection = vec3(quat(lovr.headset.getOrientation(hand)):direction())
-        rayDirection = mat4():rotate(-math.pi/4, 1, 0, 0):mul(rayDirection)
+            local rayPosition = vec3(lovr.headset.getPosition(hand))
+            local rayDirection = vec3(quat(lovr.headset.getOrientation(hand)):direction())
+            rayDirection = mat4():rotate(-math.pi/4, 1, 0, 0):mul(rayDirection)
 
-        local hit = gDisplay:intersect(rayPosition, rayDirection)
-        if hit then
-            VIRTUAL_MOUSE_X = hit.x
-            VIRTUAL_MOUSE_Y = hit.y
+            local hit = gDisplay:intersect(rayPosition, rayDirection)
+            if hit then
+                VIRTUAL_MOUSE_X = hit.x
+                VIRTUAL_MOUSE_Y = hit.y
+            end
+
+            tips[hand]:set(rayPosition + rayDirection * 50)
         end
-
-        tips[hand]:set(rayPosition + rayDirection * 50)
     end
 
     retro.retro_intf_step()
@@ -134,14 +144,14 @@ function lovr.update(dt)
     screen_snd:setFrames(screen_bin, num_frames)
     screen_src:play()
 
-    gDisplay:update(dt)
+    --gDisplay:update()
 end
 
 function lovr.draw()
     -- Plane for floor.
     lovr.graphics.setBackgroundColor(.05, .05, .05)
     lovr.graphics.setShader(shader)
-    lovr.graphics.plane('fill', 0, 0, 0, 25, 25, -math.pi / 2, 1, 0, 0)
+    lovr.graphics.plane('fill', 0, 0, 0, 25, 25, -math.pi / 2, 1, 0, 0) 
     lovr.graphics.setShader()
 
     -- Plane for libretro framebuffer. Note that because libretro cores can dynamically

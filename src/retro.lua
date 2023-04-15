@@ -1,5 +1,13 @@
 local ffi = require('ffi')
-local retro = ffi.load('retro.so')
+local retro = nil
+if ANDROID then
+    retro = ffi.load("retro.so")
+else
+    -- on desktop lovr looks from the working dir for libraries, and i keep the compiled results in /results/OS/
+    retro = ffi.load('results/linux/libretro.so')
+end
+
+
 
 -- definition of the interface for retro_intf
 ffi.cdef[[
