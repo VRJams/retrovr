@@ -3,11 +3,6 @@ print("BOOT")
 ANDROID = lovr.system.getOS() == 'Android'
 print("ANDROID " .. (ANDROID and 1 or 0))
 
-hits = {}
-
-
-hit_line = {}
-
 retro = require('retro')
 utils = require('utils')
 display = require('display')
@@ -55,6 +50,7 @@ function init_retro()
 
     retro.retro_intf_set_input(0, retro.DEVICE_LIGHTGUN, 0)
 
+    -- callback function called by the core to update the input_state internal variable, an array of unsigned ints
     retro.retro_intf_set_input_callback(function (input_state)
         if not ANDROID then
             input_state.values[retro.LIGHTGUN_TRIGGER] = KEYBOARD_KEYPRESSED['space'] or 0
@@ -138,8 +134,11 @@ local tips = {}
 
 function lovr.update(dt)
     if not ANDROID then
-        VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X + 0.1 * (KEYBOARD_KEYPRESSED['l'] or 0) - 0.1 * (KEYBOARD_KEYPRESSED["j"] or 0)
-        VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y + 0.1 * (KEYBOARD_KEYPRESSED["i"] or 0 )- 0.1 * (KEYBOARD_KEYPRESSED["k"] or 0)
+        local multiplier = 0.01
+        VIRTUAL_MOUSE_X = VIRTUAL_MOUSE_X + multiplier * (KEYBOARD_KEYPRESSED['l'] or 0) -
+            multiplier * (KEYBOARD_KEYPRESSED["j"] or 0)
+        VIRTUAL_MOUSE_Y = VIRTUAL_MOUSE_Y - multiplier * (KEYBOARD_KEYPRESSED["i"] or 0) +
+            multiplier * (KEYBOARD_KEYPRESSED["k"] or 0)
     else    
         for i, hand in ipairs(lovr.headset.getHands()) do
             tips[hand] = tips[hand] or lovr.math.newVec3()
@@ -157,40 +156,6 @@ function lovr.update(dt)
 
             tips[hand]:set(rayPosition + rayDirection * 50)
         end
-    end
-
-    if lovr.headset.isDown("right", "trigger") then
-        local rayPosition = vec3(lovr.headset.getPosition("right"))
-        local rayDirection = vec3(quat(lovr.headset.getOrientation("right")):mul(quat(-math.pi / 2, 1, 0, 0)):direction())
-        print("RAYDIR")
-        --
-        print(rayDirection:unpack())
-        local hit = utils.raycast(rayPosition, rayDirection, gDisplay.center, gDisplay.orientation:direction())
-
-        if not hit then
-            hit = vec3(0)
-        end
-
-        table.insert(hits, lovr.math.newVec3(hit))
-        print("WORLD HIT")
-        print(hit:unpack())
-        
-        local screen_x = vec3(0, 1, 0):cross(gDisplay.orientation:direction()):normalize()
-        local screen_y = gDisplay.orientation:direction():cross(screen_x):normalize()
-        
-        print("SCREEN COORDS")
-        print(screen_x:unpack())
-        print(screen_y:unpack())
-
-        local repositioned_hit = hit - gDisplay.center
-        local screen_hit = vec2(repositioned_hit:dot(screen_x), repositioned_hit:dot(screen_y))
-
-        print("SCREEN HIT")
-        print(screen_hit:unpack())
-
-        hit_line = { }
-
-
     end
 
     retro.retro_intf_step()
@@ -232,9 +197,6 @@ function lovr.draw()
         lovr.graphics.setColor(1, 1, 1)
     end
 
-    for _, hit in ipairs(hits) do
-        lovr.graphics.sphere(hit, .002)
-    end
     utils.drawAxes()
 end
 
