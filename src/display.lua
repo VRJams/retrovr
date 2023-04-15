@@ -21,23 +21,28 @@ function display.newDisplay(center, dimension)
 end
 
 function Display:intersect(rayPos, rayDir)
+    -- get worldpsace collision between ray and screen plane
     local hit = utils.raycast(rayPos, rayDir, self.center, self.orientation:direction())
-    if not hit then
+    if not hit then -- if nil then no real intersection
         return nil
     end
+
+    -- compute the screen space X and Y versors
+    local screen_x = vec3(0, 1, 0):cross(gDisplay.orientation:direction()):normalize()
+    local screen_y = gDisplay.orientation:direction():cross(screen_x):normalize()
+
+    -- normalize for screen position
+    local repositioned_hit = hit - gDisplay.center
+    -- convert to screen space position
+    local screen_hit = vec2(repositioned_hit:dot(screen_x), repositioned_hit:dot(screen_y))
+    -- screen hit is relative tp the screen center, in meters and corrected for rotation of the screen ( NOT ROLL )
     
+    -- corrected for the screen size to a (-1, 1) scale
+    local relative_hit = screen_hit:div(self.dimension/2)
+    -- clamp inputs as they wrap if left free 
+    relative_hit = vec2(utils.clamp(relative_hit.x, -1, 1), utils.clamp(-relative_hit.y, -1, 1))
 
-
-    local bx, by, bw, bh = 0, 1, 3/2, 2/2
-    local inside = (hit.x > bx - bw)
-        and (hit.x < bx + bw)
-        and (hit.y > by - bh)
-        and (hit.y < by + bh)
-    if not inside then
-        return nil
-    end
-
-    return lovr.math.newVec2((hit.x - bx / bw), -(hit.y - by) / bh)
+    return relative_hit
 end
 
 function Display:draw(screenTex, screenTexCoordW, screenTexCoordH)
