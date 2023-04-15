@@ -3,3 +3,9 @@
 compile_commands.json
 build/**
 project/assets/**
+src/games
+results/
+.vscode
+src/cores
+*.so
+etc/manual_cmake.sh
