@@ -10,7 +10,8 @@ function display.newDisplay(center, dimension)
     obj.center = center
     obj.dimension = dimension
     obj.distanceFromViewer = 3
-    obj.orientation = lovr.math.newQuat()
+    -- define screen normal and flip to correct upside down image
+    obj.orientation = lovr.math.newQuat(vec3(0, 0, 1)):mul(quat(math.pi, 1, 0, 0))
     obj.renderMaterial = lovr.graphics.newMaterial()
 
     -- TODO: must be calculated.
@@ -20,10 +21,12 @@ function display.newDisplay(center, dimension)
 end
 
 function Display:intersect(rayPos, rayDir)
-    local hit = utils.raycast(rayPos, rayDir, self.center, self.vecUp)
+    local hit = utils.raycast(rayPos, rayDir, self.center, self.orientation:direction())
     if not hit then
         return nil
     end
+    
+
 
     local bx, by, bw, bh = 0, 1, 3/2, 2/2
     local inside = (hit.x > bx - bw)
@@ -51,7 +54,8 @@ function Display:draw(screenTex, screenTexCoordW, screenTexCoordH)
     lovr.graphics.setShader()
 end
 
-function Display:update(dt)
+---Udate position based on user head
+function Display:update()
     local headPos = vec3(lovr.headset.getPosition('head'))
     local headDir = vec3(quat(lovr.headset.getOrientation('head')):direction()):normalize()
     local targetPos = headPos + headDir * self.distanceFromViewer
