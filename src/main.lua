@@ -11,6 +11,8 @@ print(utils.dump(display))
 -- TODO: remove this.
 gDisplay = display.newDisplay(lovr.math.newVec3(1, 1, 1), lovr.math.newVec2(2, 2))
 
+-- initialize randomness
+math.randomseed(os.time())
 
 KEYBOARD_KEYPRESSED = {}
 VIRTUAL_MOUSE_X = 0
@@ -85,6 +87,9 @@ function lovr.load()
     -- initialize retro
     init_retro()
 
+    target_fps = 60
+    headset_fps = lovr.headset.getDisplayFrequency()
+
     -- create a backing sound buffer
     local sample_rate = tonumber(retro.retro_intf_get_audio_sample_rate())
     screen_bin = lovr.data.newBlob(2 * 64000, 'screen_snd')
@@ -158,7 +163,13 @@ function lovr.update(dt)
         end
     end
 
-    retro.retro_intf_step()
+    -- quest2 does not run at 60fps but higher
+    if ANDROID and ((math.random() > (target_fps / headset_fps)) and (not skipped_frame)) then
+        skipped_frame = true -- flag to avoid skipping more than 1 frame consecutively
+    else
+        skipped_frame = false
+        retro.retro_intf_step()
+    end
     screen_tex:replacePixels(screen_img)
 
     -- sound: frames are interleaved {l, r} and contain 2 samples each; so when we drain
