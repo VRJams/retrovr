@@ -8,4 +8,4 @@ results/
 *.so
 *.bin
 *.cue
-etc/manual_cmake.sh
+etc/manual_*

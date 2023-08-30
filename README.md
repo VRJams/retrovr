@@ -4,10 +4,7 @@
 
 RetroVR aims to integrate the [LibRetro](https://libretro.com) system inside the [LOVR](https://lovr.org) VR framework, aiming for now specifically at creating compatible VR Light guns.
 
-**This project is using version 0.15 of LOVR**
-
-The project was in early development when we started working on it, and it still is. 
-Issues, bugs and problems are to be expected.
+**This project is using version 0.16 of LOVR**
 
 ## Building
 
@@ -81,7 +78,7 @@ The Core must be put specifically in the `/data/data/retrovr.app` folder. This i
         
         cp /sdcard/Android/data/retrovr.app/files/cores/pcsx_rearmed_libretro_android.so /data/data/retrovr.app/
 
-The specific placement of the core is due to (Android's limitation)[https://android-developers.googleblog.com/2016/06/improving-stability-with-private-cc.html] on (linking to dynamic libraries)[https://linux.die.net/man/3/dlopen].
+The specific placement of the core is due to [Android's limitation](https://android-developers.googleblog.com/2016/06/improving-stability-with-private-cc.html) on [linking to dynamic libraries](https://linux.die.net/man/3/dlopen).
 
 ### Linux
 

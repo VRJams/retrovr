@@ -43,14 +43,14 @@ function utils.raycast(rayPos, rayDir, planePos, planeDir)
   end
 end
 
-function utils.drawAxes()
-  lovr.graphics.setColor(1, 0, 0)
-  lovr.graphics.line(0, 0, 0, 1, 0, 0)
-  lovr.graphics.setColor(0, 1, 0)
-  lovr.graphics.line(0, 0, 0, 0, 1, 0)
-  lovr.graphics.setColor(0, 0, 1)
-  lovr.graphics.line(0, 0, 0, 0, 0, 1)
-  lovr.graphics.setColor(1, 1, 1)
+function utils.drawAxes(pass)
+  pass:setColor(1, 0, 0)
+  pass:line(0, 0, 0, 1, 0, 0)
+  pass:setColor(0, 1, 0)
+  pass:line(0, 0, 0, 0, 1, 0)
+  pass:setColor(0, 0, 1)
+  pass:line(0, 0, 0, 0, 0, 1)
+  pass:setColor(1, 1, 1)
 end
 
 function utils.print_paths()

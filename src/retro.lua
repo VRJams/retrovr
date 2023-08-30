@@ -4,7 +4,7 @@ if ANDROID then
     retro = ffi.load("retro.so")
 else
     -- on desktop lovr looks from the working dir for libraries, and i keep the compiled results in /results/OS/
-    retro = ffi.load('results/linux/libretro.so')
+    retro = ffi.load("results/linux_16/libretro.so")
 end
 
 

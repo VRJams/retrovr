@@ -48,7 +48,6 @@ REPO_ROOT=$(realpath $1)
 
 # TODO(sgosselin): add the project scripts and assets with ANDROID_ASSETS.
 cmake \
-    -D LOVR_USE_VRAPI=ON \
     -D CMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
     -D ANDROID_SDK=$ANDROID_HOME \
     -D ANDROID_ABI=arm64-v8a \
@@ -57,6 +56,5 @@ cmake \
     -D ANDROID_KEYSTORE=$HOME/.keystore/android_debug.keystore \
     -D ANDROID_KEYSTORE_PASS=file:$HOME/.keystore/android_debug.keystore.password \
     -D ANDROID_MANIFEST=${REPO_ROOT}/etc/AndroidManifest.xml \
-    -D ANDROID_ASSETS=${REPO_ROOT}/project \
-    -D CMAKE_EXPORT_COMPILE_COMMANDS=y \
+    -D ANDROID_ASSETS=${REPO_ROOT}/src \
     $1

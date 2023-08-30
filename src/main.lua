@@ -3,13 +3,10 @@ print("BOOT")
 ANDROID = lovr.system.getOS() == 'Android'
 print("ANDROID " .. (ANDROID and 1 or 0))
 
-retro = require('retro')
 utils = require('utils')
+retro = require('retro')
 display = require('display')
 print(utils.dump(display))
-
--- TODO: remove this.
-gDisplay = display.newDisplay(lovr.math.newVec3(1, 1, 1), lovr.math.newVec2(2, 2))
 
 -- initialize randomness
 math.randomseed(os.time())
@@ -19,7 +16,6 @@ VIRTUAL_MOUSE_X = 0
 VIRTUAL_MOUSE_Y = 0
 
 function init_retro()
-
 
     local core_dir = lovr.filesystem.getSource() .. "/cores"
     if ANDROID then
@@ -44,9 +40,10 @@ function init_retro()
     end
     game_dir = game_dir .. "/games"
     print("game_dir: ".. game_dir)
+    
     local game_path = game_dir .. '/Project - Horned Owl (USA).bin'
     local game_path = game_dir .. '/Point Blank (USA).bin'
-
+    local game_path = game_dir .. '/Time Crisis (Europe) (En,Fr,De).bin'
     retro_success = retro.retro_intf_init(core_path, game_path)
     assert(retro_success)
 
@@ -87,41 +84,49 @@ function lovr.load()
     -- initialize retro
     init_retro()
 
-    target_fps = 60
-    headset_fps = lovr.headset.getDisplayFrequency()
+    -- setup info about target framerate
+    target_fps = 50
+    
+    -- create a backing texture for the libretro core video frame
+    local video_desc = retro.retro_intf_get_video_desc()
+    print('video_desc: ')
+    print('    curW=' .. video_desc.curFrameW)
+    print('    curH=' .. video_desc.curFrameH)
+    print('    maxW=' .. video_desc.maxFrameW)
+    print('    maxH=' .. video_desc.maxFrameH)
+    --- NB textures can be RGB565 as supplied by LibRetro. Should change
+    screen_img = lovr.data.newImage(
+        video_desc.maxFrameW, video_desc.maxFrameH, "rgba8")
+    retro.retro_intf_set_video_buffer(screen_img:getBlob():getPointer())
+    -- create a material that will be used to retro-project the core video frame
+    screen_tex = lovr.graphics.newTexture(screen_img, {mipmaps = false, usage = {"sample", "transfer"}})
+
+    --create the screen 
+    gDisplay = display.newDisplay(lovr.math.newVec3(0, 1, 1), lovr.math.newVec2(8/3, 2))
 
     -- create a backing sound buffer
     local sample_rate = tonumber(retro.retro_intf_get_audio_sample_rate())
-    screen_bin = lovr.data.newBlob(2 * 64000, 'screen_snd')
+    print("sample_rate: " .. sample_rate)
+    -- 100ms audio buffer to control delay
+    local audio_buffer_szie = sample_rate * 0.1 
+    screen_bin = lovr.data.newBlob(2 * audio_buffer_szie, 'screen_snd')
     retro.retro_intf_set_audio_buffer(screen_bin:getPointer(), screen_bin:getSize() / 2)
     screen_snd = lovr.data.newSound(
         screen_bin:getSize() / 2, 'i16', 'stereo', sample_rate, 'stream')
     screen_src = lovr.audio.newSource(screen_snd)
 
-    -- create a backing texture for the libretro core video frame
-    local video_desc = retro.retro_intf_get_video_desc()
-    print('video_desc: ')
-    print('    curW='..video_desc.curFrameW)
-    print('    curH='..video_desc.curFrameW)
-    print('    maxW='..video_desc.maxFrameW)
-    print('    maxH='..video_desc.maxFrameH)
-    screen_img = lovr.data.newImage(
-        video_desc.maxFrameW, video_desc.maxFrameH, "rgba", nil)
-    retro.retro_intf_set_video_buffer(screen_img:getBlob():getPointer())
-    -- create a material that will be used to retro-project the core video frame
-    screen_tex = lovr.graphics.newTexture(screen_img)
-
     -- grid floor shader
     shader = lovr.graphics.newShader([[
-        vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
-            return projection * transform * vertex;
+        vec4 lovrmain() {
+            return DefaultPosition;
         }
     ]], [[
         const float gridSize = 25.;
         const float cellSize = .5;
 
-        vec4 color(vec4 gcolor, sampler2D image, vec2 uv) {
+        vec4 lovrmain() {
             // Distance-based alpha (1. at the middle, 0. at edges)
+            vec2 uv = UV;
             float alpha = 1. - smoothstep(.15, .50, distance(uv, vec2(.5)));
             // Grid coordinate
             uv *= gridSize;
@@ -163,32 +168,35 @@ function lovr.update(dt)
         end
     end
 
+
+
+    --gDisplay:update()
+end
+
+function lovr.draw(pass)
+    -- Plane for floor.
+    lovr.graphics.setBackgroundColor(.05, .05, .05)
+    pass:setShader(shader)
+    pass:plane(0, 0, 0, 25, 25, -math.pi / 2, 1, 0, 0) 
+    pass:setShader()
+
     -- quest2 does not run at 60fps but higher
-    if ANDROID and ((math.random() > (target_fps / headset_fps)) and (not skipped_frame)) then
-        skipped_frame = true -- flag to avoid skipping more than 1 frame consecutively
+    -- this ensures the emulator has a normal framerate 
+    if ((math.random() > (target_fps / lovr.timer.getFPS()))) then
+        
     else
-        skipped_frame = false
         retro.retro_intf_step()
     end
-    screen_tex:replacePixels(screen_img)
-
+    
     -- sound: frames are interleaved {l, r} and contain 2 samples each; so when we drain
     -- the audio buffer we get the total number of samples that were written, hence why
     -- we divide by two.
     local num_samples = tonumber(retro.retro_intf_drain_audio_buffer())
     local num_frames = num_samples / 2
     screen_snd:setFrames(screen_bin, num_frames)
-    screen_src:play()
-
-    --gDisplay:update()
-end
-
-function lovr.draw()
-    -- Plane for floor.
-    lovr.graphics.setBackgroundColor(.05, .05, .05)
-    lovr.graphics.setShader(shader)
-    lovr.graphics.plane('fill', 0, 0, 0, 25, 25, -math.pi / 2, 1, 0, 0) 
-    lovr.graphics.setShader()
+    if not screen_src:isPlaying()then
+        screen_src:play()
+    end
 
     -- Plane for libretro framebuffer. Note that because libretro cores can dynamically
     -- adjust the video buffer dimension, we need to adjust our texture mapping. We don't
@@ -196,19 +204,22 @@ function lovr.draw()
     local video_desc = retro.retro_intf_get_video_desc()
     local tex_w = video_desc.curFrameW / video_desc.maxFrameW
     local tex_h = video_desc.curFrameH / video_desc.maxFrameH
-    gDisplay:draw(screen_tex, tex_w, tex_h)
+    local transfer_pass = lovr.graphics.getPass("transfer")
+    transfer_pass:copy(screen_img, screen_tex)
+    gDisplay:draw(pass, screen_tex, tex_w, tex_h)
 
     for hand, tip in pairs(tips) do
         local position = vec3(lovr.headset.getPosition(hand))
         -- draw hand position
-        lovr.graphics.setColor(1, 1, 1)
-        lovr.graphics.sphere(position, .01)
+        pass:setColor(1, 1, 1)
+        pass:sphere(position, .01)
         -- draw hand direction
-        lovr.graphics.line(position, position + 0.2 * tip:normalize())
-        lovr.graphics.setColor(1, 1, 1)
+        pass:line(position, position + 0.2 * tip:normalize())
+        pass:setColor(1, 1, 1)
     end
 
-    utils.drawAxes()
+    utils.drawAxes(pass)
+    return lovr.graphics.submit({pass, transfer_pass})
 end
 
 function lovr.keypressed(key, scancode, w)

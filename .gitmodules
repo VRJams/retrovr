@@ -1,4 +1,4 @@
 [submodule "external/lovr"]
 	path = deps/lovr
-	url = git@github.com:sgosselin/lovr.git
-	branch = retrovr/main
+	url = git@github.com:bjornbytes/lovr.git
+
