@@ -5,6 +5,7 @@ add_library(
     retro
     MODULE
         ./retro_intf.c
+        ./dlfcn.c
 )
 
 if(ANDROID)

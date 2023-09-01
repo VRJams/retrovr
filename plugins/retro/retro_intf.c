@@ -1,7 +1,6 @@
 #include "retro_intf.h"
 
 #include <assert.h>
-#include <dlfcn.h>
 #include <errno.h>
 #include <math.h>
 #include <stdarg.h>
@@ -11,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "dlfcn.h"
 #include "libretro.h"
 
 /* main interface with a libretro core; functions must be looked up */
