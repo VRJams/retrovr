@@ -17,7 +17,7 @@ VIRTUAL_MOUSE_Y = 0
 
 function init_retro()
 
-    local core_dir = lovr.filesystem.getSource() .. "/cores"
+    local core_dir = lovr.filesystem.getSource() .. "cores"
     if ANDROID then
         core_dir = "/data/data/retrovr.app"
     end
@@ -29,7 +29,7 @@ function init_retro()
         print(value)
     end
 
-    local core_path = core_dir .. '/pcsx_rearmed_libretro_x86.so'
+    local core_path = core_dir .. '/pcsx_rearmed_libretro.dll'
     if ANDROID then
         core_path = core_dir .. '/pcsx_rearmed_libretro_android.so'
     end
