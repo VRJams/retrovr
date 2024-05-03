@@ -14,10 +14,12 @@ math.randomseed(os.time())
 KEYBOARD_KEYPRESSED = {}
 VIRTUAL_MOUSE_X = 0
 VIRTUAL_MOUSE_Y = 0
+utils.print_paths()
 
 function init_retro()
 
     local core_dir = lovr.filesystem.getSource() .. "/cores"
+    core_dir = lovr.filesystem.getWorkingDirectory() .. "/cores"
     if ANDROID then
         core_dir = "/data/data/retrovr.app"
     end
@@ -44,7 +46,7 @@ function init_retro()
     local game_path = game_dir .. '/Project - Horned Owl (USA).bin'
     local game_path = game_dir .. '/Point Blank (USA).bin'
     local game_path = game_dir .. '/Time Crisis (Europe) (En,Fr,De).bin'
-    retro_success = retro.retro_intf_init(core_path, game_path)
+        retro_success = retro.retro_intf_init(core_path, game_path)
     assert(retro_success)
 
     retro.retro_intf_set_input(0, retro.DEVICE_LIGHTGUN, 0)
@@ -205,7 +207,8 @@ function lovr.draw(pass)
     local tex_w = video_desc.curFrameW / video_desc.maxFrameW
     local tex_h = video_desc.curFrameH / video_desc.maxFrameH
     local transfer_pass = lovr.graphics.getPass("transfer")
-    transfer_pass:copy(screen_img, screen_tex)
+    --transfer_pass:copy(screen_img, screen_tex)
+    screen_tex:setPixels(screen_img)
     gDisplay:draw(pass, screen_tex, tex_w, tex_h)
 
     for hand, tip in pairs(tips) do
