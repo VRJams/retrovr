@@ -4,7 +4,7 @@
 
 RetroVR aims to integrate the [LibRetro](https://libretro.com) system inside the [LOVR](https://lovr.org) VR framework, aiming for now specifically at creating compatible VR Light guns.
 
-**This project is using version 0.16 of LOVR**
+**This project is using version 0.17.1 of LOVR**
 
 ## Running
 
@@ -22,7 +22,7 @@ You can [build it yourself](#building) or Get the latest builds for [Windows](ht
 
 You will need to download the code from the repository, at least the `src` folder.
 
-Then you'll need to place the cores and game files inside of it.
+Then you'll need to place the cores and game files inside it.
 Specifically, the cores in `src/cores` and the games in `src/games`.
 
 Then, run `retrovr --console ./src` on Linux or `lovr.exe --console ./src` on Windows
@@ -59,6 +59,13 @@ The specific placement of the core is due to [Android's limitation](https://andr
 ## Building
 
 To better understand the compilation process, consult the [relevant LOVR docs](https://lovr.org/docs/v0.15.0/Compiling)
+
+### Using Docker
+
+For building to Linux and Android, I suggest using my [Docker based solution](https://github.com/Udinanon/lovr-docker-builder). You still need to download the code, but compilation happens inside the container.
+
+You still need to download and prepare the code, adapt the script, and pass the emulator cores to the Oculus, but no need to install SDKs or other libraries to compile
+
 
 ### Android
 
@@ -103,7 +110,7 @@ This will compile the LOVR executable and needed libraries to the `build/bin` fo
 
 ### Windows
 
-Windows is a new taget for us, so issues might still appear
+Windows is a new target for us, so issues might still appear
 
 For now, Windows code has some special needs and is therefore kept on a [separate branch](https://github.com/VRJams/retrovr/tree/windows)
 
@@ -134,9 +141,9 @@ The resulting file will be `build/deps/lovr/Debug/lovr.exe`.
 
 ## Thanks
 
-This work stems from the amzing work done by [sgosselin](https://github.com/sgosselin) on his [original repo](https://github.com/sgosselin/retrovr). 
+This work stems from the amazing work done by [sgosselin](https://github.com/sgosselin) on his [original repo](https://github.com/sgosselin/retrovr). 
 
 His code is the true heart of this project and this would never have been possible without him 
 
-Thanks also to the amazing LOVR community, which has helped us develop this and gave us a lot of uspport! 
+Thanks also to the amazing LOVR community, which has helped us develop this and gave us a lot of support! 
 Find us and them on their [Matrix](https://matrix.to/#/#community:lovr.org)
